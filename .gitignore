@@ -38,3 +38,11 @@ next-env.d.ts
 .vscode/
 *.swp
 *.swo
+
+# Build artifacts / 打包产物
+*.tar.gz
+*.tgz
+.pack-temp/
+
+# SSR logs
+ssr.log

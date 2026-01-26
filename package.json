@@ -1,6 +1,6 @@
 {
   "name": "theme-anheyu-nova",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Nova - 一个现代化的博客主题，基于 Next.js 和 HeroUI 构建，适配 anheyu-app 后端",
   "scripts": {
@@ -10,6 +10,9 @@
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "clean": "rm -rf .next node_modules/.cache",
+    "pack": "bash scripts/pack-standalone.sh",
+    "install-to-pro": "bash scripts/install-to-pro.sh",
+    "watch": "bash scripts/watch-and-install.sh",
     "docker:build": "docker build -t anheyu-nova .",
     "docker:run": "docker run -p 3000:3000 -e API_URL=http://host.docker.internal:8091 anheyu-nova"
   },

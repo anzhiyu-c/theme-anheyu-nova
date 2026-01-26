@@ -46,3 +46,4 @@ next-env.d.ts
 
 # SSR logs
 ssr.log
+dist

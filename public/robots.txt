@@ -1,0 +1,7 @@
+# 此文件将被 Go 后端的 robots.txt 覆盖
+# 这里只是一个占位文件
+
+User-agent: *
+Allow: /
+
+Sitemap: /sitemap.xml

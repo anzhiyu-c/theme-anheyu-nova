@@ -1,0 +1,606 @@
+/* ============================================
+   文章详情页样式 - 参考 anheyu-pro 设计
+   ============================================ */
+
+.post-detail-page {
+  --article-primary: #3b82f6;
+  --article-primary-light: rgba(59, 130, 246, 0.1);
+  --article-primary-medium: rgba(59, 130, 246, 0.25);
+  /* 抵消 layout 的 pt-16，让 Hero 延伸到顶部 */
+  margin-top: -4rem;
+}
+
+/* ============================================
+   Hero Section - anheyu-pro 风格
+   ============================================ */
+
+.post-hero {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  height: 30rem;
+  min-height: 300px;
+  overflow: hidden;
+  color: white;
+}
+
+/* 主色背景层 */
+.post-hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--article-primary);
+  z-index: 0;
+}
+
+/* 底部圆角遮挡层 - 防止内容区域动画时圆角露馅 */
+.post-hero::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1.5rem;
+  background: #ffffff;
+  border-radius: 1.5rem 1.5rem 0 0;
+  z-index: 2;
+}
+
+:root[class~="dark"] .post-hero::after {
+  background: #09090b;
+}
+
+/* 封面图片 - 模糊装饰效果 */
+.post-hero-cover {
+  position: absolute;
+  right: -20%;
+  top: 0;
+  width: 70%;
+  height: 100%;
+  overflow: hidden;
+  filter: blur(30px);
+  opacity: 0.5;
+  transform: rotate(10deg) translateY(30%) scale(2);
+  z-index: 1;
+}
+
+.post-hero-cover-img {
+  width: 100%;
+  min-width: 50vw;
+  height: 100%;
+  min-height: 25rem;
+  object-fit: cover;
+  opacity: 0.8;
+}
+
+/* 文章信息区域 */
+.post-hero-info {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  width: 100%;
+  max-width: 1400px;
+  height: 100%;
+  padding: 4rem 3rem 2rem;
+  margin: 0 auto;
+  animation: slide-in 0.6s backwards;
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.post-hero-info-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* 第一行：原创 + 分类 + 标签 */
+.post-meta-firstline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+/* 原创标签 */
+.post-meta-original {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  transition: all 0.3s;
+}
+
+.post-meta-original:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* 分类标签 */
+.post-meta-category {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  transition: all 0.3s;
+}
+
+.post-meta-category:hover {
+  color: var(--article-primary);
+  background: white;
+}
+
+/* 标签列表 */
+.post-meta-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.post-meta-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px 0 8px;
+  font-size: 1rem;
+  white-space: nowrap;
+  border-radius: 12px;
+  opacity: 0.8;
+  transition: all 0.3s;
+}
+
+.post-meta-tag:hover {
+  background: rgba(255, 255, 255, 0.15);
+  opacity: 1;
+}
+
+.post-meta-tag span {
+  margin-left: 4px;
+}
+
+/* 标题 */
+.post-hero-title {
+  margin: 0;
+  font-size: clamp(1.75rem, 5vw, 3rem);
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: left;
+}
+
+/* 元信息第二行 */
+.post-meta-secondline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.post-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 2px 8px;
+  opacity: 0.7;
+  border-radius: 8px;
+  transition: all 0.3s;
+  cursor: default;
+}
+
+.post-meta-item:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.post-meta-sep {
+  opacity: 0.4;
+  margin: 0 0.15rem;
+}
+
+@media (max-width: 768px) {
+}
+
+/* ============================================
+   Content Section
+   ============================================ */
+
+.post-content-section {
+  position: relative;
+  background: #ffffff;
+  padding-top: 2.5rem;
+  animation: content-slide-up 0.6s ease-out 0.3s both;
+  border-radius: 1.5rem 1.5rem 0 0;
+  margin-top: -1.5rem;
+  z-index: 3;
+}
+
+:root[class~="dark"] .post-content-section {
+  background: #09090b;
+}
+
+.post-content-wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 1.5rem 4rem;
+}
+
+/* 底部操作 */
+.post-footer {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: center;
+}
+
+/* ============================================
+   响应式设计
+   ============================================ */
+
+@media (max-width: 768px) {
+  .post-hero {
+    height: 26rem;
+    min-height: 260px;
+  }
+
+  .post-hero-info {
+    padding: 4rem 1.5rem 2rem;
+  }
+
+  .post-hero-title {
+    font-size: 1.5rem;
+  }
+
+  .post-meta-firstline {
+    gap: 0.5rem;
+  }
+
+  .post-meta-original,
+  .post-meta-category {
+    height: 28px;
+    padding: 0 10px;
+    font-size: 0.875rem;
+  }
+
+  .post-meta-tag {
+    height: 28px;
+    padding: 0 10px 0 6px;
+    font-size: 0.875rem;
+  }
+
+  .post-meta-secondline {
+    font-size: 0.875rem;
+  }
+
+  .post-meta-item {
+    padding: 2px 4px;
+    gap: 0.25rem;
+  }
+
+  .post-hero-cover {
+    opacity: 0.3;
+  }
+
+  .post-content-wrapper {
+    padding: 0 1rem 3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .post-hero {
+    height: 24rem;
+    min-height: 240px;
+  }
+
+  .post-hero-info {
+    padding: 4rem 1rem 1.5rem;
+  }
+
+  .post-hero-title {
+    font-size: 1.25rem;
+  }
+
+  .post-meta-original,
+  .post-meta-category {
+    height: 26px;
+    padding: 0 8px;
+    font-size: 0.8125rem;
+    border-radius: 8px;
+  }
+
+  .post-meta-tag {
+    height: 26px;
+    padding: 0 8px 0 4px;
+    font-size: 0.8125rem;
+    border-radius: 8px;
+  }
+
+  .post-meta-secondline {
+    font-size: 0.75rem;
+  }
+}
+
+/* ============================================
+   亮色/暗色模式适配
+   ============================================ */
+
+/* 亮色模式底部边框 */
+:root:not([class~="dark"]) .post-footer {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* 暗色模式底部边框 */
+:root[class~="dark"] .post-footer {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ============================================
+   主色调增强效果
+   ============================================ */
+
+/* 选中文本使用主色 */
+.post-detail-page ::selection {
+  background: var(--article-primary-medium);
+  color: white;
+}
+
+/* 文章内容链接使用主色 */
+/* 排除按钮、链接卡片、友链等特殊组件 */
+.post-detail-page
+  .post-content
+  a:not(.btn-anzhiyu):not(.tag-Link):not(.btn-item a):not(.link-card):not(.link-card a):not(.flink-list-item a):not(
+    .btns-container a
+  ):not(.btn-container a) {
+  color: var(--article-primary);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--article-primary-medium);
+  transition: all 0.2s ease;
+}
+
+.post-detail-page
+  .post-content
+  a:not(.btn-anzhiyu):not(.tag-Link):not(.btn-item a):not(.link-card):not(.link-card a):not(.flink-list-item a):not(
+    .btns-container a
+  ):not(.btn-container a):hover {
+  border-bottom-style: solid;
+  border-bottom-color: var(--article-primary);
+}
+
+/* 代码块样式已在 post-content.css 中定义 */
+
+/* 引用块使用主色 */
+.post-detail-page .post-content blockquote {
+  background: var(--article-primary-light);
+}
+
+/* 标题标记使用主色 */
+.post-detail-page .post-content h1::before,
+.post-detail-page .post-content h2::before,
+.post-detail-page .post-content h3::before {
+  color: var(--article-primary);
+}
+
+/* 上一篇/下一篇 hover 使用主色 */
+.post-detail-page .pagination-item:hover {
+  background: var(--article-primary);
+  border-color: var(--article-primary);
+}
+
+/* 猜你喜欢 hover 使用主色 */
+.post-detail-page .related-posts-item:hover {
+  background: var(--article-primary);
+}
+
+/* 滚动条使用主色 */
+.post-detail-page::-webkit-scrollbar {
+  width: 8px;
+}
+
+.post-detail-page::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.post-detail-page::-webkit-scrollbar-thumb {
+  background: var(--article-primary-medium);
+  border-radius: 4px;
+}
+
+.post-detail-page::-webkit-scrollbar-thumb:hover {
+  background: var(--article-primary);
+}
+
+/* ============================================
+   特殊元素样式增强
+   ============================================ */
+
+/* Tip 插件使用主色 */
+.post-detail-page .md-editor-tip {
+  --tip-color: var(--article-primary);
+}
+
+/* 表格表头使用主色 */
+.post-detail-page .post-content table thead {
+  background: var(--article-primary-light);
+}
+
+.post-detail-page .post-content table th {
+  border-bottom-color: var(--article-primary-medium);
+}
+
+/* 分割线渐变 */
+.post-detail-page .post-content hr {
+  border: none;
+  height: 2px;
+  background: linear-gradient(to right, transparent, var(--article-primary-medium), transparent);
+  margin: 2rem 0;
+}
+
+/* 图片容器圆角和阴影 */
+.post-detail-page .post-content img {
+  border-radius: 12px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.post-detail-page .post-content img:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* ============================================
+   进度指示器（可选添加）
+   ============================================ */
+
+.post-detail-page::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--scroll-progress, 0%);
+  height: 3px;
+  background: linear-gradient(to right, var(--article-primary), var(--article-primary-medium));
+  z-index: 1000;
+  transition: width 0.1s linear;
+}
+
+/* ============================================
+   动画效果
+   ============================================ */
+
+/* 标签悬浮动画 */
+@keyframes tag-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.post-tag:nth-child(odd):hover {
+  animation: tag-float 0.5s ease-in-out;
+}
+
+/* 分类徽章光晕效果 */
+.post-category-badge {
+  position: relative;
+  overflow: hidden;
+}
+
+.post-category-badge::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.3) 50%, transparent 60%);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+
+.post-category-badge:hover::before {
+  transform: translateX(100%);
+}
+
+/* 封面图片加载动画 */
+@keyframes image-reveal {
+  from {
+    opacity: 0;
+    transform: scale(1.1);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+.post-hero-bg img {
+  animation: image-reveal 0.8s ease-out forwards;
+}
+
+/* 内容区域入场动画 */
+@keyframes content-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 动画在上面的 .post-content-section 中已定义 */
+
+/* 渐变边框效果（用于焦点状态） */
+.post-detail-page .post-content :focus-visible {
+  outline: 2px solid var(--article-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ============================================
+   打印样式
+   ============================================ */
+
+@media print {
+  .post-hero {
+    min-height: auto;
+    page-break-after: always;
+  }
+
+  .post-hero-bg,
+  .post-hero-overlay,
+  .post-back-btn,
+  .post-footer {
+    display: none !important;
+  }
+
+  .post-hero-content {
+    position: relative;
+    color: black;
+    padding: 2rem 0;
+  }
+
+  .post-hero-title {
+    color: black;
+    text-shadow: none;
+  }
+
+  .post-detail-page::before {
+    display: none;
+  }
+}

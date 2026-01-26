@@ -1,0 +1,132 @@
+{
+  "name": "theme-anheyu-nova",
+  "displayName": "Nova",
+  "version": "2.0.0",
+  "engineVersion": 2,
+  "description": "Nova - 一个现代化的博客主题，基于 Next.js 构建，支持 Go 模板完整渲染 + React Hydration，SEO 效果等同于 SSR",
+  "author": {
+    "name": "安知鱼",
+    "email": "anzhiyu@anheyu.com",
+    "url": "https://anheyu.com"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/anzhiyu-c/theme-anheyu-nova",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anzhiyu-c/theme-anheyu-nova.git"
+  },
+  "keywords": ["博客", "主题", "Next.js", "Hydration", "SSR", "SEO", "响应式", "现代化"],
+  "category": "blog",
+  "renderMode": "full",
+  "compatibility": {
+    "minAppVersion": "1.7.0",
+    "renderMode": "full"
+  },
+  "screenshots": [
+    "https://upload-bbs.miyoushe.com/upload/2026/01/25/125766904/7b79c851a34e307e3a983792cde4ec62_8589399404297277252.png",
+    "https://upload-bbs.miyoushe.com/upload/2026/01/25/125766904/5e025cd90bc27ce94b47bb9f9621048d_3484627717893015159.png"
+  ],
+  "themeType": "pro",
+  "demoUrl": "https://anheyu.com",
+  "downloadUrl": "https://pan.anzhiyu.site/d/anheyu/theme-navo/theme-anheyu-nova-v0.1.0.zip",
+  "instructionUrl": "https://docs.anheyu.com/themes/nova",
+  "price": 0,
+  "isOfficial": true,
+  "engines": {
+    "anheyu-app": ">=1.7.0"
+  },
+  "features": [
+    "深色/浅色主题切换",
+    "响应式布局",
+    "SEO 优化",
+    "多页面静态生成",
+    "文章详情预渲染",
+    "分类和标签页面",
+    "流畅动画效果"
+  ],
+  "settings": [
+    {
+      "group": "style",
+      "label": "外观设置",
+      "fields": [
+        {
+          "name": "primaryColor",
+          "label": "主题色",
+          "type": "color",
+          "default": "#3b82f6",
+          "description": "网站的主要颜色"
+        },
+        {
+          "name": "defaultTheme",
+          "label": "默认主题",
+          "type": "select",
+          "default": "system",
+          "options": [
+            { "label": "跟随系统", "value": "system" },
+            { "label": "浅色模式", "value": "light" },
+            { "label": "深色模式", "value": "dark" }
+          ],
+          "description": "访客首次访问时使用的主题模式"
+        },
+        {
+          "name": "enableAnimation",
+          "label": "启用动画",
+          "type": "switch",
+          "default": true,
+          "description": "是否启用页面过渡动画效果"
+        }
+      ]
+    },
+    {
+      "group": "layout",
+      "label": "布局设置",
+      "fields": [
+        {
+          "name": "sidebarPosition",
+          "label": "侧边栏位置",
+          "type": "select",
+          "default": "right",
+          "options": [
+            { "label": "左侧", "value": "left" },
+            { "label": "右侧", "value": "right" },
+            { "label": "隐藏", "value": "none" }
+          ],
+          "description": "文章页面侧边栏的显示位置"
+        },
+        {
+          "name": "articlesPerPage",
+          "label": "每页文章数",
+          "type": "number",
+          "default": 10,
+          "validation": {
+            "min": 5,
+            "max": 50,
+            "message": "每页文章数应在 5-50 之间"
+          },
+          "description": "文章列表每页显示的文章数量"
+        }
+      ]
+    },
+    {
+      "group": "footer",
+      "label": "页脚设置",
+      "fields": [
+        {
+          "name": "showRuntime",
+          "label": "显示运行时间",
+          "type": "switch",
+          "default": true,
+          "description": "是否在页脚显示网站运行时间"
+        },
+        {
+          "name": "customFooterHtml",
+          "label": "自定义页脚内容",
+          "type": "textarea",
+          "default": "",
+          "placeholder": "支持 HTML 代码",
+          "description": "在页脚添加自定义内容，如备案号、版权声明等"
+        }
+      ]
+    }
+  ]
+}

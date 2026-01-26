@@ -1,0 +1,169 @@
+/**
+ * AnZhiYu Icon Font
+ * 与 anheyu-pro 兼容的图标字体
+ */
+@font-face {
+  font-family: "anzhiyufont";
+  src: url("/static/fonts/anzhiyufont/font_2508400_fpn9ui60u6q.eot");
+  src: url("/static/fonts/anzhiyufont/font_2508400_fpn9ui60u6q.eot#iefix") format("embedded-opentype"),
+    url("/static/fonts/anzhiyufont/font_2508400_fpn9ui60u6q.woff2") format("woff2"),
+    url("/static/fonts/anzhiyufont/font_2508400_fpn9ui60u6q.woff") format("woff"),
+    url("/static/fonts/anzhiyufont/font_2508400_fpn9ui60u6q.ttf") format("truetype");
+}
+
+.anzhiyufont {
+  font-family: "anzhiyufont" !important;
+  font-size: 1rem;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 常用图标 */
+.anzhiyu-icon-paste:before {
+  content: "\e65f";
+}
+.anzhiyu-icon-copy:before {
+  content: "\e62a";
+}
+.anzhiyu-icon-angle-double-down:before {
+  content: "\e674";
+}
+.anzhiyu-icon-angle-down:before {
+  content: "\e663";
+}
+.anzhiyu-icon-angle-up:before {
+  content: "\e633";
+}
+.anzhiyu-icon-angle-left:before {
+  content: "\e678";
+}
+.anzhiyu-icon-angle-right:before {
+  content: "\e66a";
+}
+.anzhiyu-icon-play:before {
+  content: "\e661";
+}
+.anzhiyu-icon-pause:before {
+  content: "\e67d";
+}
+.anzhiyu-icon-forward:before {
+  content: "\e65a";
+}
+.anzhiyu-icon-backward:before {
+  content: "\e65c";
+}
+.anzhiyu-icon-music:before {
+  content: "\e643";
+}
+.anzhiyu-icon-download:before {
+  content: "\e65d";
+}
+.anzhiyu-icon-xmark:before {
+  content: "\e66d";
+}
+.anzhiyu-icon-circle-info:before {
+  content: "\f05a";
+}
+.anzhiyu-icon-circle-check:before {
+  content: "\f058";
+}
+.anzhiyu-icon-triangle-exclamation:before {
+  content: "\e612";
+}
+.anzhiyu-icon-warning:before {
+  content: "\f06a";
+}
+.anzhiyu-icon-bolt:before {
+  content: "\e610";
+}
+.anzhiyu-icon-lightbulb:before {
+  content: "\e64d";
+}
+.anzhiyu-icon-link:before {
+  content: "\f0c1";
+}
+.anzhiyu-icon-tag:before {
+  content: "\e658";
+}
+.anzhiyu-icon-tags:before {
+  content: "\e642";
+}
+.anzhiyu-icon-calendar-days:before {
+  content: "\e60f";
+}
+.anzhiyu-icon-clock:before {
+  content: "\e62e";
+}
+.anzhiyu-icon-eye-outline:before {
+  content: "\e631";
+}
+.anzhiyu-icon-fw-eye:before {
+  content: "\e679";
+}
+.anzhiyu-icon-fire:before {
+  content: "\e635";
+}
+.anzhiyu-icon-fw-fire:before {
+  content: "\e669";
+}
+.anzhiyu-icon-magnifying-glass:before {
+  content: "\e63b";
+}
+.anzhiyu-icon-gear:before {
+  content: "\e638";
+}
+.anzhiyu-icon-house-chimney:before {
+  content: "\e606";
+}
+.anzhiyu-icon-paper-plane:before {
+  content: "\e605";
+}
+.anzhiyu-icon-envelope:before {
+  content: "\e604";
+}
+.anzhiyu-icon-comments:before {
+  content: "\eb16";
+}
+.anzhiyu-icon-message:before {
+  content: "\e63d";
+}
+.anzhiyu-icon-spinner:before {
+  content: "\e66e";
+}
+.anzhiyu-icon-arrows-rotate:before {
+  content: "\e67c";
+}
+.anzhiyu-icon-shuffle:before {
+  content: "\e640";
+}
+.anzhiyu-icon-repeat:before {
+  content: "\e67a";
+}
+.anzhiyu-icon-images:before {
+  content: "\e64f";
+}
+.anzhiyu-icon-folder-open:before {
+  content: "\e672";
+}
+.anzhiyu-icon-thumbs-up:before {
+  content: "\e673";
+}
+.anzhiyu-icon-github:before {
+  content: "\e602";
+}
+.anzhiyu-icon-bilibili:before {
+  content: "\e603";
+}
+.anzhiyu-icon-qq:before {
+  content: "\e601";
+}
+.anzhiyu-icon-weibo:before {
+  content: "\e60c";
+}
+.anzhiyu-icon-rss:before {
+  content: "\e600";
+}
+.anzhiyu-icon-copyright:before {
+  content: "\e60e";
+}

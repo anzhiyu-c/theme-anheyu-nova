@@ -1,0 +1,142 @@
+# AnHeYu Blog Theme 项目概览
+
+这是 anheyu-pro 博客系统的 Next.js 前端主题项目。
+
+## 技术栈
+
+- **框架**: Next.js 16 (App Router + Turbopack)
+- **UI 组件**: HeroUI (基于 Tailwind CSS)
+- **动画**: Framer Motion
+- **状态管理**: Zustand
+- **样式**: Tailwind CSS
+- **图标**: Lucide React
+- **日期处理**: date-fns
+
+## 项目结构
+
+```
+anheyu-blog-theme/
+├── src/
+│   ├── app/                    # Next.js App Router
+│   │   ├── (frontend)/         # 前台页面组
+│   │   │   ├── page.tsx        # 首页
+│   │   │   ├── posts/          # 文章列表/详情
+│   │   │   ├── categories/     # 分类页
+│   │   │   ├── tags/           # 标签页
+│   │   │   └── about/          # 关于页
+│   │   ├── globals.css         # 全局样式
+│   │   └── layout.tsx          # 根布局
+│   │
+│   ├── components/             # 组件目录
+│   │   └── frontend/           # 前台组件
+│   │       ├── home/           # 首页组件
+│   │       ├── layout/         # 布局组件 (Header, Footer)
+│   │       ├── animations/     # 动画组件
+│   │       └── theme/          # 主题相关
+│   │
+│   ├── hooks/                  # 自定义 Hooks
+│   │   ├── useArticles.ts      # 文章相关
+│   │   ├── useCategories.ts    # 分类相关
+│   │   ├── useTags.ts          # 标签相关
+│   │   ├── useComments.ts      # 评论相关
+│   │   └── useSite.ts          # 网站配置
+│   │
+│   ├── lib/                    # 工具库
+│   │   └── api/                # API 客户端
+│   │       ├── client.ts       # HTTP 客户端
+│   │       ├── services.ts     # API 服务函数
+│   │       └── types.ts        # 类型定义
+│   │
+│   ├── store/                  # Zustand 状态管理
+│   │   ├── articlesStore.ts
+│   │   ├── categoriesStore.ts
+│   │   ├── tagsStore.ts
+│   │   ├── commentsStore.ts
+│   │   ├── siteStore.ts
+│   │   └── themeStore.ts
+│   │
+│   └── providers/              # React Context Providers
+│       └── theme-provider.tsx
+│
+├── public/                     # 静态资源
+├── next.config.ts              # Next.js 配置
+├── tailwind.config.ts          # Tailwind 配置
+└── package.json
+```
+
+## 与后端的关系
+
+本项目是 **anheyu-pro** 博客系统的前端主题，通过 API 与后端交互：
+
+```
+┌─────────────────────┐
+│  anheyu-blog-theme  │  ← 本项目 (Next.js 前端主题)
+└──────────┬──────────┘
+           │ HTTP API
+           ▼
+┌─────────────────────┐
+│     anheyu-pro      │  ← Pro 版后端 (Go + Gin)
+├─────────────────────┤
+│     anheyu-app      │  ← 基础版后端（Pro 版继承）
+└─────────────────────┘
+```
+
+### 可调用的后端项目
+
+1. **anheyu-app** (基础版): 提供基础的文章、分类、标签、评论等 API
+2. **anheyu-pro** (扩展版): 在基础版上扩展了会员、知识库、AI 摘要、付费内容等功能
+
+详细的 API 规范请参考 `api-integration.mdc` 规则文件。
+
+## 开发规范
+
+### 组件开发
+
+1. 使用函数式组件 + TypeScript
+2. 样式使用 Tailwind CSS
+3. 动画使用 Framer Motion
+4. 复杂状态使用 Zustand
+
+### 数据获取
+
+1. 使用 `src/lib/api/services.ts` 中的 API 服务
+2. 页面级数据获取使用 Server Components
+3. 客户端数据使用自定义 Hooks (`src/hooks/`)
+
+### 状态管理
+
+- 全局状态使用 Zustand stores (`src/store/`)
+- 主题切换使用 `next-themes`
+
+## 开发命令
+
+```bash
+# 开发模式 (端口 3003)
+pnpm dev
+
+# 构建
+pnpm build
+
+# 启动生产服务
+pnpm start
+
+# 代码检查
+pnpm lint
+
+# 导出静态文件
+pnpm export
+```
+
+## 环境变量
+
+```env
+# .env.local
+NEXT_PUBLIC_API_URL=http://localhost:8080  # 后端 API 地址
+```
+
+## 注意事项
+
+1. **API 调用**: 新增 API 调用时，务必参考 `anheyu-pro/assets/src/api/` 中的实现
+2. **类型定义**: 保持与后端返回数据类型一致
+3. **Pro 版功能**: 使用 Pro 版特有功能时（如会员、知识库），使用 `/api/pro/*` 路径
+4. **公开接口**: 无需认证的接口使用 `/api/public/*` 路径

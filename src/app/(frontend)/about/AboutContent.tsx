@@ -56,11 +56,11 @@ function shouldSkipOptimization(src: string, siteUrl?: string): boolean {
           if (parts.length >= 2) {
             allowedHostnames.push(parts.slice(-2).join("."));
           }
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
       }
-      const isAllowed = allowedHostnames.some(allowed =>
-        hostname === allowed || hostname.endsWith("." + allowed)
-      );
+      const isAllowed = allowedHostnames.some(allowed => hostname === allowed || hostname.endsWith("." + allowed));
       return !isAllowed;
     } catch {
       return true;
@@ -79,7 +79,9 @@ function isImageUrl(str: string): boolean {
     // 检查常见图片扩展名
     const imageExtensions = [".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".ico"];
     const lowerStr = str.toLowerCase();
-    return imageExtensions.some(ext => lowerStr.includes(ext)) || lowerStr.includes("/f/") || lowerStr.includes("/api/");
+    return (
+      imageExtensions.some(ext => lowerStr.includes(ext)) || lowerStr.includes("/f/") || lowerStr.includes("/api/")
+    );
   }
   return false;
 }
@@ -90,9 +92,7 @@ function isImageUrl(str: string): boolean {
 function isIconFontClass(str: string): boolean {
   if (!str) return false;
   // 检查是否是 iconfont 类名格式（如 anzhiyu-icon-xxx, fa-xxx, iconfont-xxx）
-  return str.startsWith("anzhiyu-icon-") || 
-         str.startsWith("fa-") || 
-         str.startsWith("iconfont");
+  return str.startsWith("anzhiyu-icon-") || str.startsWith("fa-") || str.startsWith("iconfont");
 }
 
 // ========== 类型定义 ==========
@@ -262,7 +262,8 @@ function AnimatedNumber({ value, suffix = "" }: { value: number; suffix?: string
 
   return (
     <span ref={ref} className="tabular-nums">
-      {formatNumber(displayValue)}{suffix}
+      {formatNumber(displayValue)}
+      {suffix}
     </span>
   );
 }
@@ -372,7 +373,7 @@ export default function AboutContent({ authorInfo, stats }: AboutContentProps) {
     return {
       key,
       // 根据 icon 类型选择渲染方式
-      iconComponent: (!isImg && !isIconFont) ? (socialIconMap[key.toLowerCase()] || socialIconMap.default) : null,
+      iconComponent: !isImg && !isIconFont ? socialIconMap[key.toLowerCase()] || socialIconMap.default : null,
       iconUrl: isImg ? iconValue : null,
       iconFontClass: isIconFont ? iconValue : null,
       href: value.link,
@@ -389,11 +390,29 @@ export default function AboutContent({ authorInfo, stats }: AboutContentProps) {
   ];
 
   // 技术标签（优先使用配置中的 skills，否则使用默认）
-  const techTags = authorInfo.skills.length > 0 ? authorInfo.skills : [
-    "React", "Vue", "Next.js", "Nuxt", "TypeScript", "Go", "Node.js",
-    "PostgreSQL", "Redis", "Docker", "Kubernetes", "Tailwind CSS",
-    "GraphQL", "REST API", "微服务", "CI/CD", "云原生", "性能优化",
-  ];
+  const techTags =
+    authorInfo.skills.length > 0
+      ? authorInfo.skills
+      : [
+          "React",
+          "Vue",
+          "Next.js",
+          "Nuxt",
+          "TypeScript",
+          "Go",
+          "Node.js",
+          "PostgreSQL",
+          "Redis",
+          "Docker",
+          "Kubernetes",
+          "Tailwind CSS",
+          "GraphQL",
+          "REST API",
+          "微服务",
+          "CI/CD",
+          "云原生",
+          "性能优化",
+        ];
 
   return (
     <div className="relative min-h-screen">
@@ -501,7 +520,7 @@ export default function AboutContent({ authorInfo, stats }: AboutContentProps) {
             {/* 社交链接 */}
             {socialLinks.length > 0 && (
               <div className="flex items-center justify-center gap-4">
-                {socialLinks.map((social) => (
+                {socialLinks.map(social => (
                   <motion.a
                     key={social.key}
                     href={social.href}
@@ -533,7 +552,6 @@ export default function AboutContent({ authorInfo, stats }: AboutContentProps) {
               </div>
             )}
           </motion.div>
-
         </div>
       </motion.section>
 
@@ -598,7 +616,9 @@ export default function AboutContent({ authorInfo, stats }: AboutContentProps) {
               <ScrollReveal key={skillGroup.category} delay={groupIndex * 0.1}>
                 <div className="glass-card-enhanced rounded-3xl p-6 md:p-8 hover-lift">
                   <div className="flex items-center gap-4 mb-6">
-                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${skillGroup.color} flex items-center justify-center text-white shadow-lg`}>
+                    <div
+                      className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${skillGroup.color} flex items-center justify-center text-white shadow-lg`}
+                    >
                       <skillGroup.icon className="w-6 h-6" />
                     </div>
                     <h3 className="text-xl font-semibold">{skillGroup.category}</h3>
@@ -645,9 +665,7 @@ export default function AboutContent({ authorInfo, stats }: AboutContentProps) {
           <ScrollReveal>
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold gradient-text mb-4">我的经历</h2>
-              <p className="text-zinc-500 dark:text-zinc-400 max-w-xl mx-auto">
-                每一步都是成长，每一次挑战都是机遇
-              </p>
+              <p className="text-zinc-500 dark:text-zinc-400 max-w-xl mx-auto">每一步都是成长，每一次挑战都是机遇</p>
             </div>
           </ScrollReveal>
 
@@ -655,33 +673,27 @@ export default function AboutContent({ authorInfo, stats }: AboutContentProps) {
             <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary via-primary-400 to-purple-500 transform md:-translate-x-1/2" />
 
             {timeline.map((item, index) => (
-              <ScrollReveal
-                key={item.year}
-                delay={index * 0.15}
-                direction={index % 2 === 0 ? "left" : "right"}
-              >
-                <div className={`relative flex items-start gap-8 mb-12 ${
-                  index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
-                }`}>
+              <ScrollReveal key={item.year} delay={index * 0.15} direction={index % 2 === 0 ? "left" : "right"}>
+                <div
+                  className={`relative flex items-start gap-8 mb-12 ${
+                    index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
+                  }`}
+                >
                   <div className="absolute left-8 md:left-1/2 w-4 h-4 rounded-full bg-primary border-4 border-white dark:border-zinc-900 transform -translate-x-1/2 z-10" />
 
-                  <div className={`ml-16 md:ml-0 md:w-1/2 ${
-                    index % 2 === 0 ? "md:pr-12 md:text-right" : "md:pl-12"
-                  }`}>
+                  <div className={`ml-16 md:ml-0 md:w-1/2 ${index % 2 === 0 ? "md:pr-12 md:text-right" : "md:pl-12"}`}>
                     <div className="glass-card-enhanced rounded-2xl p-6 hover-lift">
-                      <div className={`flex items-center gap-3 mb-3 ${
-                        index % 2 === 0 ? "md:justify-end" : ""
-                      }`}>
-                        <div className={`w-10 h-10 rounded-xl ${item.color} flex items-center justify-center text-white shadow-lg`}>
+                      <div className={`flex items-center gap-3 mb-3 ${index % 2 === 0 ? "md:justify-end" : ""}`}>
+                        <div
+                          className={`w-10 h-10 rounded-xl ${item.color} flex items-center justify-center text-white shadow-lg`}
+                        >
                           <item.icon className="w-5 h-5" />
                         </div>
                         <span className="text-sm font-medium text-primary">{item.year}</span>
                       </div>
                       <h3 className="text-xl font-semibold mb-1">{item.title}</h3>
                       <p className="text-sm text-primary/80 mb-3">{item.company}</p>
-                      <p className="text-zinc-500 dark:text-zinc-400 text-sm leading-relaxed">
-                        {item.description}
-                      </p>
+                      <p className="text-zinc-500 dark:text-zinc-400 text-sm leading-relaxed">{item.description}</p>
                     </div>
                   </div>
                 </div>
@@ -713,7 +725,7 @@ export default function AboutContent({ authorInfo, stats }: AboutContentProps) {
                     { icon: BookOpen, title: "技术文章", desc: "深度技术分析和实践总结" },
                     { icon: Heart, title: "生活随笔", desc: "记录生活中的点滴感悟" },
                     { icon: Rocket, title: "项目分享", desc: "开源项目和工具推荐" },
-                  ].map((item) => (
+                  ].map(item => (
                     <div
                       key={item.title}
                       className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 group hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors"
@@ -774,7 +786,9 @@ export default function AboutContent({ authorInfo, stats }: AboutContentProps) {
                   className="block glass-card-enhanced rounded-2xl p-6 hover-lift group"
                   whileHover={{ y: -4 }}
                 >
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${contact.color} flex items-center justify-center text-white shadow-lg mb-4 group-hover:scale-110 transition-transform`}>
+                  <div
+                    className={`w-12 h-12 rounded-xl bg-gradient-to-br ${contact.color} flex items-center justify-center text-white shadow-lg mb-4 group-hover:scale-110 transition-transform`}
+                  >
                     <contact.icon className="w-6 h-6" />
                   </div>
                   <h3 className="font-semibold mb-1">{contact.title}</h3>

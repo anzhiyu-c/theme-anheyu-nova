@@ -66,8 +66,8 @@ check_dependencies() {
         exit 1
     fi
     
-    if ! command -v pnpm &> /dev/null; then
-        log_error "pnpm 未安装，请先安装 pnpm: npm install -g pnpm"
+    if ! command -v npm &> /dev/null; then
+        log_error "npm 未安装"
         exit 1
     fi
     
@@ -85,9 +85,14 @@ clean_build() {
 
 # 安装依赖
 install_deps() {
-    log_info "安装依赖..."
+    log_info "使用 npm 安装依赖（扁平化结构，避免符号链接问题）..."
     cd "$PROJECT_ROOT"
-    pnpm install --frozen-lockfile
+    
+    # 删除 pnpm 的 node_modules，使用 npm 重新安装
+    # npm 会生成扁平化的 node_modules，所有依赖在顶层，无需手动修复
+    rm -rf node_modules
+    npm install --legacy-peer-deps
+    
     log_success "依赖安装完成"
 }
 
@@ -96,8 +101,8 @@ build_project() {
     log_info "构建 Next.js 项目 (standalone 模式)..."
     cd "$PROJECT_ROOT"
     
-    # 使用 webpack 构建（Turbopack 在某些环境下可能有问题）
-    NEXT_TURBO=false pnpm build
+    # 使用 npm 构建
+    NEXT_TURBO=false npm run build
     
     # 验证构建结果
     if [ ! -d "$PROJECT_ROOT/.next/standalone" ]; then
@@ -107,6 +112,7 @@ build_project() {
     
     log_success "构建完成"
 }
+
 
 # 准备打包目录
 prepare_package() {

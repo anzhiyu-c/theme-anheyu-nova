@@ -14,17 +14,12 @@ const config: Config = {
   content: [
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
     "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}",
-    // Go 模板文件 - 确保 prose 等类被包含
-    "../anheyu-pro/static/**/*.html",
+    // 注意: 不要使用 "../anheyu-pro/static/**/*.html" 这样的跨项目路径
+    // Turbopack 不允许访问项目根目录之外的文件系统
+    // prose 类已通过 safelist 确保包含
   ],
   // 确保 prose 类始终被包含（用于 Go 模板模式）
-  safelist: [
-    "prose",
-    "prose-lg",
-    "prose-invert",
-    "dark:prose-invert",
-    { pattern: /^prose-/ },
-  ],
+  safelist: ["prose", "prose-lg", "prose-invert", "dark:prose-invert", { pattern: /^prose-/ }],
   theme: {
     extend: {
       colors: {

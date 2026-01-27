@@ -44,7 +44,7 @@ export default function TagsPage() {
           {tags.map(tag => (
             <Link key={tag.id} href={`/posts?tag=${tag.id}`}>
               <Chip
-                size={getTagSize(tag.article_count)}
+                size={getTagSize(tag.count)}
                 variant="flat"
                 className="cursor-pointer hover:bg-primary/20 transition-colors"
                 style={{
@@ -53,7 +53,7 @@ export default function TagsPage() {
                 }}
               >
                 {tag.name}
-                <span className="ml-1 text-xs opacity-60">({tag.article_count})</span>
+                <span className="ml-1 text-xs opacity-60">({tag.count})</span>
               </Chip>
             </Link>
           ))}

@@ -7,7 +7,7 @@
  */
 "use client";
 
-import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef, memo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence, useScroll, useTransform, useSpring, useInView } from "framer-motion";
@@ -31,7 +31,7 @@ import {
   Hash,
   FileText,
 } from "lucide-react";
-import { useArticles, useCategories, useSearch } from "@/hooks";
+import { useArticles, useCategories, useSearch, useSiteConfig } from "@/hooks";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { getArticleCategory, getArticleSummary, getArticleSlug, type Category, type Article } from "@/lib/api/types";
@@ -41,6 +41,63 @@ import { useHydrated } from "@/hooks";
 
 // 默认封面图片
 const DEFAULT_COVER = "/static/img/default_cover.jpg";
+
+/**
+ * 判断图片是否需要跳过 Next.js 优化
+ * - 相对路径的 API 代理图片需要跳过优化以避免 500 错误
+ * - 不在站点域名白名单中的外部图片也需要跳过优化以避免 400 错误
+ * @param src 图片 URL
+ * @param siteUrl 站点配置中的 SITE_URL（如 https://blog.anheyu.com）
+ */
+function shouldSkipOptimization(src: string, siteUrl?: string): boolean {
+  // 相对路径的 API 代理图片需要跳过优化
+  if (src.startsWith("/api/") || src.startsWith("/f/")) {
+    return true;
+  }
+
+  // 检查外部 URL 是否在允许的域名列表中
+  if (src.startsWith("http://") || src.startsWith("https://")) {
+    try {
+      const url = new URL(src);
+      const hostname = url.hostname;
+
+      // 构建允许的域名列表：站点配置域名 + localhost
+      const allowedHostnames: string[] = ["localhost"];
+
+      // 从站点配置中提取域名
+      if (siteUrl) {
+        try {
+          const siteHostname = new URL(siteUrl).hostname;
+          allowedHostnames.push(siteHostname);
+          // 也允许子域名（如 blog.anheyu.com 也允许 *.anheyu.com）
+          const parts = siteHostname.split(".");
+          if (parts.length >= 2) {
+            const rootDomain = parts.slice(-2).join(".");
+            allowedHostnames.push(rootDomain);
+          }
+        } catch {
+          // 站点 URL 解析失败，忽略
+        }
+      }
+
+      // 检查是否匹配允许的域名（包括子域名）
+      const isAllowed = allowedHostnames.some(allowed => {
+        if (hostname === allowed) return true;
+        // 检查子域名匹配
+        if (hostname.endsWith("." + allowed)) return true;
+        return false;
+      });
+
+      // 不在白名单中的外部图片需要跳过优化
+      return !isAllowed;
+    } catch {
+      // URL 解析失败，跳过优化
+      return true;
+    }
+  }
+
+  return false;
+}
 
 // 视图模式类型
 type ViewMode = "grid" | "list";
@@ -74,33 +131,6 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 30, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      type: "spring",
-      stiffness: 100,
-      damping: 15,
-    },
-  },
-};
-
-const listItemVariants = {
-  hidden: { opacity: 0, x: -20 },
-  visible: {
-    opacity: 1,
-    x: 0,
-    transition: {
-      type: "spring",
-      stiffness: 100,
-      damping: 15,
-    },
-  },
-};
-
 // 热度等级计算
 function getHotLevel(viewCount: number): { level: number; label: string; color: string } {
   if (viewCount >= 1000) return { level: 3, label: "热门", color: "text-red-500" };
@@ -109,155 +139,65 @@ function getHotLevel(viewCount: number): { level: number; label: string; color: 
   return { level: 0, label: "", color: "" };
 }
 
-// 文章卡片组件 - Grid 视图
-function ArticleGridCard({ article, index }: { article: Article; index: number }) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-50px" });
-  const isHydrated = useHydrated();
-  const category = getArticleCategory(article);
-  const summary = getArticleSummary(article);
-  const slug = getArticleSlug(article);
-  const tags = article.post_tags?.slice(0, 2) || [];
-  const hotLevel = getHotLevel(article.view_count || 0);
-  const [isHovered, setIsHovered] = useState(false);
+// 文章卡片组件 - Grid 视图（性能优化版）
+const ArticleGridCard = memo(function ArticleGridCard({
+  article,
+  index,
+  siteUrl,
+}: {
+  article: Article;
+  index: number;
+  siteUrl?: string;
+}) {
+  const category = useMemo(() => getArticleCategory(article), [article]);
+  const summary = useMemo(() => getArticleSummary(article), [article]);
+  const slug = useMemo(() => getArticleSlug(article), [article]);
+  const tags = useMemo(() => article.post_tags?.slice(0, 2) || [], [article.post_tags]);
+  const hotLevel = useMemo(() => getHotLevel(article.view_count || 0), [article.view_count]);
 
   return (
-    <motion.div
-      ref={ref}
-      variants={itemVariants}
-      initial={isHydrated ? "hidden" : false}
-      animate={isHydrated ? (isInView ? "visible" : "hidden") : "visible"}
-      custom={index}
-      className="h-full"
-    >
-      <Link
-        href={`/posts/${slug}`}
-        className="group block h-full"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        <motion.article
-          className="relative h-full flex flex-col overflow-hidden rounded-2xl bg-card transition-all duration-500"
-          style={{
-            border: isHovered ? "1px solid var(--primary)" : "1px solid var(--border)",
-            boxShadow: isHovered
-              ? "0 0 20px -5px var(--primary), 0 10px 30px -10px rgba(0,0,0,0.3), inset 0 1px 0 0 rgba(255,255,255,0.1)"
-              : "0 1px 3px rgba(0,0,0,0.1)",
-          }}
-        >
-          {/* 悬停渐变背景 */}
-          <motion.div
-            className="absolute inset-0 rounded-2xl pointer-events-none"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: isHovered ? 1 : 0 }}
-            transition={{ duration: 0.4 }}
-            style={{
-              background: "linear-gradient(135deg, var(--primary)/5 0%, transparent 50%, var(--primary)/5 100%)",
-            }}
-          />
-
-          {/* 流动边框效果 */}
-          <motion.div
-            className="absolute -inset-[1px] rounded-2xl pointer-events-none z-10 overflow-hidden"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: isHovered ? 1 : 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <motion.div
-              className="absolute inset-0"
-              animate={{
-                background: isHovered
-                  ? [
-                      "conic-gradient(from 0deg at 50% 50%, var(--primary) 0deg, transparent 60deg, transparent 300deg, var(--primary) 360deg)",
-                      "conic-gradient(from 360deg at 50% 50%, var(--primary) 0deg, transparent 60deg, transparent 300deg, var(--primary) 360deg)",
-                    ]
-                  : "transparent",
-              }}
-              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-              style={{
-                WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-                WebkitMaskComposite: "xor",
-                maskComposite: "exclude",
-                padding: "1px",
-              }}
-            />
-          </motion.div>
-
-          {/* 光线扫过效果 */}
-          <motion.div
-            className="absolute inset-0 pointer-events-none z-20 overflow-hidden rounded-2xl"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: isHovered ? 1 : 0 }}
-          >
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -skew-x-12"
-              initial={{ x: "-100%" }}
-              animate={{ x: isHovered ? "200%" : "-100%" }}
-              transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-            />
-          </motion.div>
-
+    <div className="h-full">
+      <Link href={`/posts/${slug}`} className="group block h-full">
+        <article className="relative h-full flex flex-col overflow-hidden rounded-xl bg-card border border-transparent transition-all duration-500 ease-out hover:border-border/80 hover:shadow-[0_8px_30px_-12px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_8px_30px_-12px_rgba(0,0,0,0.4)] hover:-translate-y-1">
           {/* 封面图 */}
           <div className="relative aspect-[16/10] overflow-hidden flex-shrink-0">
-            <motion.div
-              className="absolute inset-0"
-              animate={{ scale: isHovered ? 1.1 : 1 }}
-              transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-            >
-              <Image
-                src={article.cover_url || DEFAULT_COVER}
-                alt={article.title}
-                fill
-                className="object-cover transition-all duration-700"
-                style={{ filter: isHovered ? "brightness(1.1) saturate(1.2)" : "brightness(1) saturate(1)" }}
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              />
-            </motion.div>
-            {/* 渐变遮罩 */}
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
-              animate={{ opacity: isHovered ? 0.8 : 1 }}
+            <Image
+              src={article.cover_url || DEFAULT_COVER}
+              alt={article.title}
+              fill
+              className="object-cover transition-all duration-700 ease-out group-hover:scale-[1.03]"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              unoptimized={shouldSkipOptimization(article.cover_url || DEFAULT_COVER, siteUrl)}
             />
+            {/* 渐变遮罩 - hover 时变亮 */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent transition-opacity duration-500 group-hover:opacity-70" />
 
             {/* 顶部信息栏 */}
             <div className="absolute top-3 left-3 right-3 flex items-start justify-between">
               {/* 分类标签 */}
               {category && (
-                <motion.span
-                  className="rounded-full bg-white/20 backdrop-blur-md px-3 py-1.5 text-xs font-medium text-white border border-white/10"
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 }}
-                >
+                <span className="rounded-full bg-black/40 backdrop-blur-sm px-2.5 py-1 text-[11px] font-medium text-white/90 transition-all duration-300 group-hover:bg-black/50">
                   {category.name}
-                </motion.span>
+                </span>
               )}
 
               {/* 热度标签 */}
               {hotLevel.level > 0 && (
-                <motion.span
-                  className={`flex items-center gap-1 rounded-full bg-black/30 backdrop-blur-md px-2.5 py-1.5 text-xs font-medium ${hotLevel.color} border border-white/10`}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  <Flame size={12} />
+                <span className="flex items-center gap-1 rounded-full bg-black/40 backdrop-blur-sm px-2 py-1 text-[11px] font-medium text-white/90">
+                  <Flame size={11} className="text-orange-400" />
                   {hotLevel.label}
-                </motion.span>
+                </span>
               )}
             </div>
 
             {/* 底部信息栏 - 在封面图上 */}
-            <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+            <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-[11px] text-white/80">
               {/* 标签 */}
               {tags.length > 0 && (
                 <div className="flex items-center gap-1.5">
                   {tags.map(tag => (
-                    <span
-                      key={tag.id}
-                      className="flex items-center gap-1 rounded-full bg-white/15 backdrop-blur-sm px-2 py-1 text-[10px] text-white/90"
-                    >
-                      <Hash size={9} />
+                    <span key={tag.id} className="flex items-center gap-0.5">
+                      <Hash size={10} className="opacity-60" />
                       {tag.name}
                     </span>
                   ))}
@@ -265,266 +205,136 @@ function ArticleGridCard({ article, index }: { article: Article; index: number }
               )}
 
               {/* 阅读时间 */}
-              <span className="flex items-center gap-1 text-[10px] text-white/80">
-                <Clock size={10} />
-                {article.reading_time || 1} 分钟
+              <span className="flex items-center gap-1">
+                <Clock size={11} className="opacity-60" />
+                {article.reading_time || 1} min
               </span>
             </div>
           </div>
 
           {/* 内容区 */}
           <div className="flex-1 flex flex-col p-4">
-            {/* 标题 */}
-            <h3 className="text-base font-semibold text-foreground line-clamp-2 min-h-[2.75rem] leading-snug group-hover:text-primary transition-colors duration-300">
+            {/* 标题 - hover 时颜色加深 */}
+            <h3 className="text-[15px] font-medium text-foreground line-clamp-2 min-h-[2.75rem] leading-snug transition-colors duration-300 group-hover:text-primary">
               {article.title}
             </h3>
 
             {/* 描述 */}
-            <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem] mt-2 leading-relaxed">
+            <p className="text-sm text-muted-foreground/80 line-clamp-2 min-h-[2.5rem] mt-2 leading-relaxed">
               {summary || "暂无描述"}
             </p>
 
             {/* 底部元信息 */}
-            <div className="flex items-center justify-between text-xs text-muted-foreground mt-auto pt-3 border-t border-border/30">
+            <div className="flex items-center justify-between text-xs text-muted-foreground/60 mt-auto pt-3">
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1">
-                  <Calendar size={11} className="opacity-50" />
+                  <Calendar size={12} />
                   {article.created_at ? format(new Date(article.created_at), "MM/dd", { locale: zhCN }) : "--"}
                 </span>
                 <span className="flex items-center gap-1">
-                  <Eye size={11} className="opacity-50" />
+                  <Eye size={12} />
                   {article.view_count || 0}
                 </span>
                 {(article.comment_count || 0) > 0 && (
                   <span className="flex items-center gap-1">
-                    <MessageCircle size={11} className="opacity-50" />
+                    <MessageCircle size={12} />
                     {article.comment_count}
                   </span>
                 )}
               </div>
-              <span className="flex items-center gap-1 text-muted-foreground/60">
-                <FileText size={11} />
-                {article.word_count ? `${Math.round(article.word_count / 100) / 10}k` : "--"}
+              {/* 箭头指示 - hover 时出现 */}
+              <span className="flex items-center gap-1 transition-all duration-300 group-hover:text-primary">
+                <ArrowRight
+                  size={14}
+                  className="opacity-0 -translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0"
+                />
               </span>
             </div>
           </div>
-
-          {/* 底部装饰线 */}
-          <motion.div
-            className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary via-primary/80 to-primary/60 origin-left"
-            initial={{ scaleX: 0 }}
-            whileHover={{ scaleX: 1 }}
-            transition={{ duration: 0.3 }}
-          />
-        </motion.article>
+        </article>
       </Link>
-    </motion.div>
+    </div>
   );
-}
+});
 
-// 文章卡片组件 - List 视图
-function ArticleListCard({ article, index }: { article: Article; index: number }) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-30px" });
-  const isHydrated = useHydrated();
-  const category = getArticleCategory(article);
-  const summary = getArticleSummary(article);
-  const slug = getArticleSlug(article);
-  const tags = article.post_tags?.slice(0, 3) || [];
-  const hotLevel = getHotLevel(article.view_count || 0);
-  const [isHovered, setIsHovered] = useState(false);
+// 文章卡片组件 - List 视图（性能优化版）
+const ArticleListCard = memo(function ArticleListCard({
+  article,
+  siteUrl,
+}: {
+  article: Article;
+  index: number;
+  siteUrl?: string;
+}) {
+  const category = useMemo(() => getArticleCategory(article), [article]);
+  const summary = useMemo(() => getArticleSummary(article), [article]);
+  const slug = useMemo(() => getArticleSlug(article), [article]);
 
   return (
-    <motion.div
-      ref={ref}
-      variants={listItemVariants}
-      initial={isHydrated ? "hidden" : false}
-      animate={isHydrated ? (isInView ? "visible" : "hidden") : "visible"}
-      custom={index}
-    >
-      <Link
-        href={`/posts/${slug}`}
-        className="group block"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        <motion.article
-          className="relative flex gap-4 sm:gap-6 py-5 sm:py-6 border-b border-border/50 transition-all duration-300 overflow-hidden"
-          style={{
-            borderRadius: "0.75rem",
-            margin: "0 -0.75rem",
-            padding: "1.25rem 0.75rem",
-            background: isHovered ? "var(--secondary)" : "transparent",
-            borderColor: isHovered ? "var(--primary)" : "var(--border)",
-          }}
-        >
-          {/* 左侧发光条 */}
-          <motion.div
-            className="absolute left-0 top-0 bottom-0 w-1 rounded-full"
-            initial={{ scaleY: 0, opacity: 0 }}
-            animate={{
-              scaleY: isHovered ? 1 : 0,
-              opacity: isHovered ? 1 : 0,
-              background: "linear-gradient(180deg, var(--primary) 0%, var(--primary)/50 100%)",
-            }}
-            transition={{ duration: 0.3 }}
-            style={{ originY: 0.5 }}
-          />
+    <div className="relative">
+      <Link href={`/posts/${slug}`} className="group block">
+        {/* 左侧指示条 - hover 时出现 */}
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-0 bg-primary rounded-full transition-all duration-300 ease-out group-hover:h-12" />
 
-          {/* 光线扫过效果 */}
-          <motion.div
-            className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: isHovered ? 1 : 0 }}
-          >
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12"
-              initial={{ x: "-100%" }}
-              animate={{ x: isHovered ? "200%" : "-100%" }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-            />
-          </motion.div>
-
-          {/* 序号 */}
-          <div className="hidden lg:flex items-center justify-center w-12 flex-shrink-0">
-            <motion.span
-              className="text-3xl font-bold tabular-nums transition-colors duration-300"
-              style={{ color: isHovered ? "var(--primary)" : "var(--muted-foreground)" }}
-              animate={{ opacity: isHovered ? 0.6 : 0.15 }}
-            >
-              {String(index + 1).padStart(2, "0")}
-            </motion.span>
-          </div>
-
+        <article className="relative flex gap-4 sm:gap-5 py-4 sm:py-5 pl-0 transition-all duration-300 ease-out group-hover:pl-4 group-hover:bg-secondary/30 rounded-lg -mx-2 px-2">
           {/* 封面图 */}
-          <div className="relative w-28 h-20 sm:w-36 sm:h-24 flex-shrink-0 overflow-hidden rounded-xl">
-            <motion.div
-              className="absolute inset-0"
-              animate={{ scale: isHovered ? 1.1 : 1 }}
-              transition={{ duration: 0.5 }}
-            >
-              <Image
-                src={article.cover_url || DEFAULT_COVER}
-                alt={article.title}
-                fill
-                className="object-cover transition-all duration-500"
-                style={{ filter: isHovered ? "brightness(1.1)" : "brightness(1)" }}
-                sizes="144px"
-              />
-            </motion.div>
-            {/* 热度角标 */}
-            {hotLevel.level > 0 && (
-              <span
-                className={`absolute top-1.5 right-1.5 flex items-center gap-0.5 rounded-full bg-black/50 backdrop-blur-sm px-1.5 py-0.5 text-[10px] font-medium ${hotLevel.color}`}
-              >
-                <Flame size={9} />
-              </span>
-            )}
+          <div className="relative w-24 h-16 sm:w-32 sm:h-20 flex-shrink-0 overflow-hidden rounded-lg ring-1 ring-border/50 transition-all duration-300 group-hover:ring-primary/30 group-hover:shadow-md">
+            <Image
+              src={article.cover_url || DEFAULT_COVER}
+              alt={article.title}
+              fill
+              className="object-cover transition-all duration-500 ease-out group-hover:scale-105"
+              sizes="144px"
+              unoptimized={shouldSkipOptimization(article.cover_url || DEFAULT_COVER, siteUrl)}
+            />
           </div>
 
           {/* 内容区 */}
-          <div className="flex-1 min-w-0 flex flex-col justify-between">
-            <div>
-              {/* 顶部信息：分类 + 日期 */}
-              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                {category && (
-                  <span className="text-[11px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                    {category.name}
-                  </span>
-                )}
-                <span className="text-[11px] text-muted-foreground">
-                  {article.created_at
-                    ? format(new Date(article.created_at), "yyyy年MM月dd日", { locale: zhCN })
-                    : "未知日期"}
-                </span>
-                {hotLevel.level > 0 && (
-                  <span className={`text-[11px] font-medium ${hotLevel.color} hidden sm:inline`}>{hotLevel.label}</span>
-                )}
-              </div>
+          <div className="flex-1 min-w-0 flex flex-col justify-center">
+            {/* 顶部信息：分类 + 日期 */}
+            <div className="flex items-center gap-2 mb-1 text-[11px] text-muted-foreground/60 transition-colors duration-300 group-hover:text-muted-foreground/80">
+              {category && (
+                <span className="transition-colors duration-300 group-hover:text-primary/80">{category.name}</span>
+              )}
+              {category && <span>·</span>}
+              <span>{article.created_at ? format(new Date(article.created_at), "MM/dd", { locale: zhCN }) : "--"}</span>
+              <span>·</span>
+              <span>{article.reading_time || 1} min</span>
+            </div>
 
-              {/* 标题 */}
-              <h3 className="text-sm sm:text-base font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors duration-300">
+            {/* 标题 - 带颜色变化和下划线效果 */}
+            <h3 className="text-sm sm:text-[15px] font-medium text-foreground line-clamp-1 sm:line-clamp-2 leading-snug inline-block transition-colors duration-300 group-hover:text-primary">
+              <span className="bg-gradient-to-r from-primary to-primary bg-[length:0%_1px] bg-left-bottom bg-no-repeat transition-[background-size] duration-400 group-hover:bg-[length:100%_1px]">
                 {article.title}
-              </h3>
-
-              {/* 描述 */}
-              {summary && (
-                <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1 sm:line-clamp-2 mt-1.5 leading-relaxed">
-                  {summary}
-                </p>
-              )}
-
-              {/* 标签 */}
-              {tags.length > 0 && (
-                <div className="hidden sm:flex items-center gap-1.5 mt-2">
-                  {tags.map(tag => (
-                    <span
-                      key={tag.id}
-                      className="flex items-center gap-0.5 text-[10px] text-muted-foreground/70 bg-secondary rounded px-1.5 py-0.5"
-                    >
-                      <Hash size={9} />
-                      {tag.name}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* 底部元信息 */}
-            <div className="flex items-center gap-3 sm:gap-4 mt-2 sm:mt-3 text-[11px] text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Eye size={11} className="opacity-60" />
-                {article.view_count || 0}
               </span>
-              <span className="flex items-center gap-1">
-                <Clock size={11} className="opacity-60" />
-                {article.reading_time || 1}分钟
-              </span>
-              {(article.comment_count || 0) > 0 && (
-                <span className="items-center gap-1 hidden sm:inline-flex">
-                  <MessageCircle size={11} className="opacity-60" />
-                  {article.comment_count}
-                </span>
-              )}
-              <span className="items-center gap-1 hidden sm:inline-flex">
-                <FileText size={11} className="opacity-60" />
-                {article.word_count ? `${Math.round(article.word_count / 100) / 10}k字` : "--"}
-              </span>
-            </div>
+            </h3>
+
+            {/* 描述 - 仅大屏显示 */}
+            {summary && (
+              <p className="hidden sm:block text-xs text-muted-foreground/50 line-clamp-1 mt-1 transition-colors duration-300 group-hover:text-muted-foreground/70">
+                {summary}
+              </p>
+            )}
           </div>
 
-          {/* 箭头 */}
-          <div className="hidden sm:flex items-center">
-            <motion.div
-              className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300"
-              animate={{
-                backgroundColor: isHovered ? "var(--primary)" : "var(--secondary)",
-                color: isHovered ? "white" : "var(--muted-foreground)",
-                rotate: isHovered ? -45 : 0,
-                scale: isHovered ? 1.1 : 1,
-              }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            >
-              <ArrowRight size={14} />
-            </motion.div>
+          {/* 右侧箭头指示 - hover 时出现 */}
+          <div className="hidden sm:flex items-center pr-2">
+            <ArrowRight
+              size={16}
+              className="text-muted-foreground/30 opacity-0 -translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0 group-hover:text-primary"
+            />
           </div>
-        </motion.article>
+        </article>
       </Link>
-    </motion.div>
+    </div>
   );
-}
+});
 
 // 骨架屏组件 - Grid
 function SkeletonGridCard() {
   return (
-    <div className="h-full rounded-2xl bg-card border border-border/50 overflow-hidden animate-pulse">
-      <div className="relative aspect-[16/10] bg-secondary">
-        <div className="absolute top-3 left-3 h-6 w-16 bg-secondary-foreground/10 rounded-full" />
-        <div className="absolute bottom-3 left-3 flex gap-1.5">
-          <div className="h-5 w-12 bg-secondary-foreground/10 rounded-full" />
-          <div className="h-5 w-14 bg-secondary-foreground/10 rounded-full" />
-        </div>
-      </div>
+    <div className="h-full rounded-xl bg-card overflow-hidden animate-pulse">
+      <div className="relative aspect-[16/10] bg-secondary" />
       <div className="p-4 space-y-3">
         <div className="h-5 bg-secondary rounded-lg w-full" />
         <div className="h-4 bg-secondary rounded-lg w-4/5" />
@@ -598,6 +408,7 @@ export default function PostsPage() {
   const isSearchMode = debouncedSearchQuery.length >= 2;
 
   // API 调用
+  const { data: siteConfig } = useSiteConfig();
   const { data, isLoading, error } = useArticles({ page, pageSize });
   const { data: categoriesData } = useCategories();
   const {
@@ -713,27 +524,16 @@ export default function PostsPage() {
       <DynamicSEO title="文章" />
 
       {/* Hero Section */}
-      <section ref={heroRef} className="relative overflow-hidden pt-24 pb-12 md:pt-32 md:pb-20">
-        {/* 背景动画装饰 */}
+      <section ref={heroRef} className="relative overflow-hidden pt-24 pb-8 md:pt-28 md:pb-12">
+        {/* 背景动画装饰 - 轻量化处理 */}
         <motion.div className="absolute inset-0 pointer-events-none" style={{ y: heroY, opacity: heroOpacity }}>
-          <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background" />
-
-          {/* 动态光晕 */}
-          <FloatingElement duration={20} distance={40} className="absolute -right-40 -top-20">
-            <div className="h-[500px] w-[500px] rounded-full bg-gradient-to-br from-primary/20 to-primary/5 blur-[120px]" />
-          </FloatingElement>
-          <FloatingElement duration={25} distance={30} className="absolute -left-40 top-20">
+          {/* 柔和的光晕效果 */}
+          <FloatingElement duration={20} distance={40} className="absolute -right-60 -top-40">
             <div className="h-[400px] w-[400px] rounded-full bg-gradient-to-br from-primary/10 to-transparent blur-[100px]" />
           </FloatingElement>
-
-          {/* 网格背景 */}
-          <div
-            className="absolute inset-0 opacity-[0.02]"
-            style={{
-              backgroundImage: `linear-gradient(var(--foreground) 1px, transparent 1px), linear-gradient(90deg, var(--foreground) 1px, transparent 1px)`,
-              backgroundSize: "60px 60px",
-            }}
-          />
+          <FloatingElement duration={25} distance={30} className="absolute -left-40 top-10">
+            <div className="h-[300px] w-[300px] rounded-full bg-gradient-to-br from-primary/5 to-transparent blur-[80px]" />
+          </FloatingElement>
         </motion.div>
 
         <div className="relative mx-auto max-w-7xl px-4">
@@ -1017,9 +817,9 @@ export default function PostsPage() {
               >
                 {displayArticles.map((article, index) =>
                   viewMode === "grid" ? (
-                    <ArticleGridCard key={article.id} article={article} index={index} />
+                    <ArticleGridCard key={article.id} article={article} index={index} siteUrl={siteConfig?.SITE_URL} />
                   ) : (
-                    <ArticleListCard key={article.id} article={article} index={index} />
+                    <ArticleListCard key={article.id} article={article} index={index} siteUrl={siteConfig?.SITE_URL} />
                   )
                 )}
               </motion.div>

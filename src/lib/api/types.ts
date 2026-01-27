@@ -81,18 +81,18 @@ export interface ArticleLink {
 export interface PostTag {
   id: string;
   name: string;
-  slug: string;
+  slug?: string;
   color?: string;
-  article_count?: number;
+  count?: number;
 }
 
 export interface PostCategory {
   id: string;
   name: string;
-  slug: string;
+  slug?: string;
   icon?: string;
   color?: string;
-  article_count?: number;
+  count?: number;
 }
 
 export interface TocItem {
@@ -162,12 +162,13 @@ export interface ArticleStatistics {
 export interface Category {
   id: string;
   name: string;
-  slug: string;
+  slug?: string;
   description?: string;
   cover?: string;
   icon?: string;
   color?: string;
-  article_count: number;
+  count: number; // 后端返回的字段名是 count
+  is_series?: boolean;
   sort_order?: number;
   parent_id?: string;
   children?: Category[];
@@ -180,10 +181,10 @@ export interface Category {
 export interface Tag {
   id: string;
   name: string;
-  slug: string;
+  slug?: string;
   color?: string;
   description?: string;
-  article_count: number;
+  count: number; // 后端返回的字段名是 count
   created_at: string;
   updated_at: string;
 }

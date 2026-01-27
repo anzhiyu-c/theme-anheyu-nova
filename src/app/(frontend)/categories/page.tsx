@@ -40,7 +40,7 @@ export default function CategoriesPage() {
                     {category.description && (
                       <p className="text-sm text-zinc-500 line-clamp-1">{category.description}</p>
                     )}
-                    <p className="text-xs text-zinc-400 mt-1">{category.article_count} 篇文章</p>
+                    <p className="text-xs text-zinc-400 mt-1">{category.count} 篇文章</p>
                   </div>
                 </CardBody>
               </Card>

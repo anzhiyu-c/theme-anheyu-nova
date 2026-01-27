@@ -39,6 +39,21 @@ function getApiUrl(): string {
 }
 
 /**
+ * 获取站点 URL（用于 Referer 头信息）
+ */
+function getSiteUrl(): string {
+  // 优先使用 NEXT_PUBLIC_SITE_URL
+  if (process.env.NEXT_PUBLIC_SITE_URL) {
+    return process.env.NEXT_PUBLIC_SITE_URL;
+  }
+  // 使用 API_URL 作为备选
+  if (process.env.API_URL) {
+    return process.env.API_URL;
+  }
+  return "http://localhost:3003";
+}
+
+/**
  * 通用 fetch 包装器
  * 支持 Next.js ISR 缓存策略
  */
@@ -52,6 +67,7 @@ async function serverFetch<T>(
 ): Promise<T | null> {
   const { revalidate = 0, tags, params } = options;
   const apiUrl = getApiUrl();
+  const siteUrl = getSiteUrl();
 
   // 构建查询参数
   let url = `${apiUrl}/api${endpoint}`;
@@ -72,6 +88,9 @@ async function serverFetch<T>(
     const fetchOptions: RequestInit & { next?: { revalidate?: number | false; tags?: string[] } } = {
       headers: {
         "Content-Type": "application/json",
+        // 添加 Referer 和 Origin 头信息，用于后端域名验证
+        Referer: siteUrl,
+        Origin: siteUrl,
       },
     };
 
@@ -228,7 +247,7 @@ export async function getAllArticleSlugs(): Promise<string[]> {
     return [];
   }
 
-  return result.list.map((article) => article.abbrlink || article.id);
+  return result.list.map(article => article.abbrlink || article.id);
 }
 
 // ========== 分类 API ==========
@@ -297,11 +316,7 @@ export async function getFriendLinks(): Promise<FriendLink[] | null> {
  * 搜索文章（服务端）
  * 不缓存搜索结果
  */
-export async function searchArticles(
-  query: string,
-  page = 1,
-  size = 10
-): Promise<SearchResult | null> {
+export async function searchArticles(query: string, page = 1, size = 10): Promise<SearchResult | null> {
   return serverFetch<SearchResult>("/search", {
     revalidate: false, // 搜索结果不缓存
     params: { q: query, page, size },

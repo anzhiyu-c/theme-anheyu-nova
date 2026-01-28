@@ -11,103 +11,95 @@ import { getArticleCategory, getArticleSlug } from "@/lib/api/types";
 import { PostContent, PostPagination, ArticleLink, RelatedPosts, RelatedArticle } from "@/components/frontend/post";
 import "@/styles/post-detail.css";
 
-// 动画配置
+// ============================================
+// 统一的动画系统 - 更加协调流畅
+// ============================================
+
+// 通用缓动函数
+const easeOut = [0.16, 1, 0.3, 1];
+
+// Hero 区域动画
 const heroAnimations = {
-  // 背景图片动画
-  cover: {
-    initial: { scale: 1.1, opacity: 0 },
-    animate: { scale: 1, opacity: 1 },
-    transition: { duration: 1.2, ease: [0.25, 0.1, 0.25, 1] },
-  },
-  // 容器动画
+  // 容器整体淡入
   container: {
     initial: { opacity: 0 },
     animate: { opacity: 1 },
-    transition: { duration: 0.6 },
+    transition: { duration: 0.4 },
   },
-  // 信息区域动画
+  // 信息区域 - 从左侧滑入
   infoWrapper: {
-    initial: { opacity: 0, y: 30 },
-    animate: { opacity: 1, y: 0 },
-    transition: { delay: 0.3, duration: 0.6, ease: [0.25, 0.1, 0.25, 1] },
+    initial: { opacity: 0, x: -30 },
+    animate: { opacity: 1, x: 0 },
+    transition: { delay: 0.1, duration: 0.6, ease: easeOut },
   },
 };
 
-// 交错动画变体
+// 交错动画容器 - 更紧凑的时序
 const staggerContainer = {
   initial: {},
   animate: {
     transition: {
-      staggerChildren: 0.08,
+      staggerChildren: 0.06,
+      delayChildren: 0.2,
+    },
+  },
+};
+
+// 淡入上移
+const fadeInUp = {
+  initial: { opacity: 0, y: 15 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, ease: easeOut },
+  },
+};
+
+// 淡入缩放
+const fadeInScale = {
+  initial: { opacity: 0, scale: 0.95 },
+  animate: {
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.3, ease: easeOut },
+  },
+};
+
+// 从左滑入
+const slideInFromLeft = {
+  initial: { opacity: 0, x: -15 },
+  animate: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.4, ease: easeOut },
+  },
+};
+
+// 标题动画 - 整体淡入，不再逐字符
+const titleAnimation = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { delay: 0.3, duration: 0.5, ease: easeOut },
+};
+
+// 元信息容器
+const metaContainer = {
+  initial: {},
+  animate: {
+    transition: {
+      staggerChildren: 0.05,
       delayChildren: 0.4,
     },
   },
 };
 
-const fadeInUp = {
-  initial: { opacity: 0, y: 20 },
-  animate: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1] },
-  },
-};
-
-const fadeInScale = {
-  initial: { opacity: 0, scale: 0.9 },
-  animate: {
-    opacity: 1,
-    scale: 1,
-    transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] },
-  },
-};
-
-const slideInFromLeft = {
-  initial: { opacity: 0, x: -20 },
-  animate: {
-    opacity: 1,
-    x: 0,
-    transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1] },
-  },
-};
-
-// 标题字符动画
-const titleContainer = {
-  initial: {},
-  animate: {
-    transition: {
-      staggerChildren: 0.02,
-      delayChildren: 0.5,
-    },
-  },
-};
-
-const titleChar = {
-  initial: { opacity: 0, y: 30 },
-  animate: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] },
-  },
-};
-
-// 元信息项动画
+// 元信息项
 const metaItemVariants = {
-  initial: { opacity: 0, y: 15 },
+  initial: { opacity: 0, y: 10 },
   animate: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] },
-  },
-};
-
-const metaContainer = {
-  initial: {},
-  animate: {
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.7,
-    },
+    transition: { duration: 0.3, ease: easeOut },
   },
 };
 
@@ -194,9 +186,21 @@ interface PostDetailClientProps {
 export default function PostDetailClient({ article: rawArticle }: PostDetailClientProps) {
   // 用于检测客户端 hydration 是否完成
   const [isHydrated, setIsHydrated] = useState(false);
+  // 封面图加载状态
+  const [isCoverLoaded, setIsCoverLoaded] = useState(false);
 
   useEffect(() => {
     setIsHydrated(true);
+  }, []);
+
+  // 监听文章变化，重置封面图加载状态
+  useEffect(() => {
+    setIsCoverLoaded(false);
+  }, [rawArticle.id]);
+
+  // 封面图加载完成回调
+  const handleCoverLoad = useCallback(() => {
+    setIsCoverLoaded(true);
   }, []);
 
   // 转换文章数据
@@ -235,15 +239,15 @@ export default function PostDetailClient({ article: rawArticle }: PostDetailClie
         animate={isHydrated ? heroAnimations.container.animate : false}
         transition={heroAnimations.container.transition}
       >
-        {/* 背景装饰图片（模糊处理）- 带缩放动画 */}
-        <motion.div
-          className="post-hero-cover"
-          initial={isHydrated ? heroAnimations.cover.initial : false}
-          animate={isHydrated ? heroAnimations.cover.animate : false}
-          transition={heroAnimations.cover.transition}
-        >
-          <img src={article.cover} alt="" className="post-hero-cover-img" />
-        </motion.div>
+        {/* 背景装饰图片（模糊处理）- 图片加载完成后整体淡入 */}
+        <div className={`post-hero-cover ${isCoverLoaded ? "is-loaded" : ""}`}>
+          <img
+            src={article.cover}
+            alt=""
+            className="post-hero-cover-img"
+            onLoad={handleCoverLoad}
+          />
+        </div>
 
         {/* 文章信息区域 */}
         <div className="post-hero-info">
@@ -289,22 +293,14 @@ export default function PostDetailClient({ article: rawArticle }: PostDetailClie
               )}
             </motion.div>
 
-            {/* 标题 - 字符逐个动画 */}
+            {/* 标题 - 整体淡入动画 */}
             <motion.h1
               className="post-hero-title"
-              variants={titleContainer}
-              initial={isHydrated ? "initial" : false}
-              animate={isHydrated ? "animate" : false}
+              initial={isHydrated ? titleAnimation.initial : false}
+              animate={isHydrated ? titleAnimation.animate : false}
+              transition={titleAnimation.transition}
             >
-              {article.title.split("").map((char, index) => (
-                <motion.span
-                  key={index}
-                  variants={titleChar}
-                  style={{ display: "inline-block", whiteSpace: char === " " ? "pre" : "normal" }}
-                >
-                  {char}
-                </motion.span>
-              ))}
+              {article.title}
             </motion.h1>
 
             {/* 元信息行 - 交错动画 */}
@@ -357,15 +353,15 @@ export default function PostDetailClient({ article: rawArticle }: PostDetailClie
       {/* Content Section - 内容区域从底部滑入 */}
       <motion.section
         className="post-content-section"
-        initial={isHydrated ? { opacity: 0, y: 40 } : false}
+        initial={isHydrated ? { opacity: 0, y: 30 } : false}
         animate={isHydrated ? { opacity: 1, y: 0 } : false}
-        transition={{ delay: 0.8, duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
+        transition={{ delay: 0.5, duration: 0.6, ease: easeOut }}
       >
         <motion.div
           className="post-content-wrapper"
           initial={isHydrated ? { opacity: 0 } : false}
           animate={isHydrated ? { opacity: 1 } : false}
-          transition={{ delay: 1, duration: 0.5 }}
+          transition={{ delay: 0.6, duration: 0.4 }}
         >
           {/* 文章内容 */}
           <PostContent content={article.content} />

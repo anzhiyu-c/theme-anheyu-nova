@@ -46,85 +46,156 @@
   ],
   "settings": [
     {
-      "group": "style",
-      "label": "外观设置",
+      "group": "about",
+      "label": "关于页面",
       "fields": [
         {
-          "name": "primaryColor",
-          "label": "主题色",
-          "type": "color",
-          "default": "#3b82f6",
-          "description": "网站的主要颜色"
-        },
-        {
-          "name": "defaultTheme",
-          "label": "默认主题",
-          "type": "select",
-          "default": "system",
-          "options": [
-            { "label": "跟随系统", "value": "system" },
-            { "label": "浅色模式", "value": "light" },
-            { "label": "深色模式", "value": "dark" }
-          ],
-          "description": "访客首次访问时使用的主题模式"
-        },
-        {
-          "name": "enableAnimation",
-          "label": "启用动画",
+          "name": "about.showSkills",
+          "label": "显示技能板块",
           "type": "switch",
           "default": true,
-          "description": "是否启用页面过渡动画效果"
-        }
-      ]
-    },
-    {
-      "group": "layout",
-      "label": "布局设置",
-      "fields": [
-        {
-          "name": "sidebarPosition",
-          "label": "侧边栏位置",
-          "type": "select",
-          "default": "right",
-          "options": [
-            { "label": "左侧", "value": "left" },
-            { "label": "右侧", "value": "right" },
-            { "label": "隐藏", "value": "none" }
-          ],
-          "description": "文章页面侧边栏的显示位置"
+          "description": "是否在关于页面显示技能展示板块"
         },
         {
-          "name": "articlesPerPage",
-          "label": "每页文章数",
-          "type": "number",
-          "default": 10,
-          "validation": {
-            "min": 5,
-            "max": 50,
-            "message": "每页文章数应在 5-50 之间"
-          },
-          "description": "文章列表每页显示的文章数量"
-        }
-      ]
-    },
-    {
-      "group": "footer",
-      "label": "页脚设置",
-      "fields": [
-        {
-          "name": "showRuntime",
-          "label": "显示运行时间",
+          "name": "about.showCareers",
+          "label": "显示经历板块",
           "type": "switch",
           "default": true,
-          "description": "是否在页脚显示网站运行时间"
+          "description": "是否在关于页面显示职业经历时间线"
         },
         {
-          "name": "customFooterHtml",
-          "label": "自定义页脚内容",
+          "name": "about.showTechTags",
+          "label": "显示技术标签",
+          "type": "switch",
+          "default": true,
+          "description": "是否在技能板块下方显示技术标签云"
+        },
+        {
+          "name": "about.skillsTitle",
+          "label": "技能板块标题",
+          "type": "text",
+          "default": "技术栈",
+          "description": "技能展示板块的标题文字"
+        },
+        {
+          "name": "about.skillsTips",
+          "label": "技能板块描述",
+          "type": "text",
+          "default": "多年的开发经验让我掌握了丰富的技术栈，能够应对各种复杂的项目需求",
+          "description": "技能展示板块的描述文字"
+        },
+        {
+          "name": "about.careersTitle",
+          "label": "经历板块标题",
+          "type": "text",
+          "default": "我的经历",
+          "description": "职业经历板块的标题文字"
+        },
+        {
+          "name": "about.careersTips",
+          "label": "经历板块描述",
+          "type": "text",
+          "default": "每一步都是成长，每一次挑战都是机遇",
+          "description": "职业经历板块的描述文字"
+        },
+        {
+          "name": "about.skillGroups",
+          "label": "技能组数据",
+          "type": "code",
+          "default": "[{\"category\":\"前端开发\",\"icon\":\"Code2\",\"color\":\"from-blue-500 to-cyan-500\",\"items\":[{\"name\":\"React / Next.js\",\"level\":95},{\"name\":\"Vue / Nuxt\",\"level\":90},{\"name\":\"TypeScript\",\"level\":92},{\"name\":\"Tailwind CSS\",\"level\":95}]},{\"category\":\"后端开发\",\"icon\":\"Terminal\",\"color\":\"from-emerald-500 to-teal-500\",\"items\":[{\"name\":\"Go / Gin\",\"level\":88},{\"name\":\"Node.js\",\"level\":85},{\"name\":\"Python\",\"level\":80},{\"name\":\"Rust\",\"level\":70}]},{\"category\":\"数据库 & 缓存\",\"icon\":\"Database\",\"color\":\"from-orange-500 to-amber-500\",\"items\":[{\"name\":\"PostgreSQL\",\"level\":90},{\"name\":\"MySQL\",\"level\":88},{\"name\":\"Redis\",\"level\":85},{\"name\":\"MongoDB\",\"level\":75}]},{\"category\":\"云服务 & DevOps\",\"icon\":\"Cloud\",\"color\":\"from-purple-500 to-pink-500\",\"items\":[{\"name\":\"Docker\",\"level\":90},{\"name\":\"Kubernetes\",\"level\":80},{\"name\":\"AWS / 阿里云\",\"level\":85},{\"name\":\"CI/CD\",\"level\":88}]}]",
+          "description": "技能组数据，JSON 格式。每个技能组包含 category(分类名)、icon(图标名)、color(渐变色)、items(技能列表，含 name 和 level)"
+        },
+        {
+          "name": "about.careers",
+          "label": "职业经历数据",
+          "type": "code",
+          "default": "[{\"year\":\"2024\",\"title\":\"全栈架构师\",\"company\":\"独立开发者\",\"description\":\"专注于开源项目和技术分享，打造高质量的博客系统和开发工具。\",\"icon\":\"Rocket\",\"color\":\"bg-gradient-to-r from-primary to-primary-400\"},{\"year\":\"2022\",\"title\":\"高级前端工程师\",\"company\":\"某科技公司\",\"description\":\"负责公司核心产品的前端架构设计与性能优化，带领团队完成多个重要项目。\",\"icon\":\"Layers\",\"color\":\"bg-gradient-to-r from-blue-500 to-cyan-500\"},{\"year\":\"2020\",\"title\":\"前端开发工程师\",\"company\":\"某互联网公司\",\"description\":\"参与多个大型项目开发，从0到1构建企业级中后台系统。\",\"icon\":\"GitBranch\",\"color\":\"bg-gradient-to-r from-emerald-500 to-teal-500\"},{\"year\":\"2018\",\"title\":\"初入编程世界\",\"company\":\"大学时期\",\"description\":\"开始学习编程，从第一行代码到第一个完整项目，开启了技术探索之旅。\",\"icon\":\"BookOpen\",\"color\":\"bg-gradient-to-r from-purple-500 to-pink-500\"}]",
+          "description": "职业经历数据，JSON 格式。每项包含 year(年份)、title(职位)、company(公司)、description(描述)、icon(图标)、color(颜色)"
+        },
+        {
+          "name": "about.techTags",
+          "label": "技术标签",
           "type": "textarea",
-          "default": "",
-          "placeholder": "支持 HTML 代码",
-          "description": "在页脚添加自定义内容，如备案号、版权声明等"
+          "default": "React,Vue,Next.js,Nuxt,TypeScript,Go,Node.js,PostgreSQL,Redis,Docker,Kubernetes,Tailwind CSS,GraphQL,REST API,微服务,CI/CD,云原生,性能优化",
+          "description": "技术标签列表，用逗号分隔"
+        }
+      ]
+    },
+    {
+      "group": "homepage",
+      "label": "首页设置",
+      "fields": [
+        {
+          "name": "homepage.heroStyle",
+          "label": "首页 Hero 样式",
+          "type": "select",
+          "default": "default",
+          "options": [
+            { "label": "默认样式", "value": "default" },
+            { "label": "简约样式", "value": "minimal" },
+            { "label": "全屏样式", "value": "fullscreen" }
+          ],
+          "description": "首页顶部区域的展示样式"
+        },
+        {
+          "name": "homepage.showRecentPosts",
+          "label": "显示最新文章",
+          "type": "switch",
+          "default": true,
+          "description": "是否在首页显示最新文章列表"
+        },
+        {
+          "name": "homepage.postsCount",
+          "label": "首页文章数量",
+          "type": "number",
+          "default": 6,
+          "validation": {
+            "min": 3,
+            "max": 12,
+            "message": "首页文章数量应在 3-12 之间"
+          },
+          "description": "首页显示的最新文章数量"
+        }
+      ]
+    },
+    {
+      "group": "article",
+      "label": "文章页面",
+      "fields": [
+        {
+          "name": "article.showToc",
+          "label": "显示目录",
+          "type": "switch",
+          "default": true,
+          "description": "是否在文章页面显示目录导航"
+        },
+        {
+          "name": "article.showAuthor",
+          "label": "显示作者信息",
+          "type": "switch",
+          "default": true,
+          "description": "是否在文章末尾显示作者信息卡片"
+        },
+        {
+          "name": "article.showRelated",
+          "label": "显示相关文章",
+          "type": "switch",
+          "default": true,
+          "description": "是否在文章末尾显示相关文章推荐"
+        },
+        {
+          "name": "article.codeTheme",
+          "label": "代码高亮主题",
+          "type": "select",
+          "default": "github-dark",
+          "options": [
+            { "label": "GitHub Dark", "value": "github-dark" },
+            { "label": "GitHub Light", "value": "github-light" },
+            { "label": "One Dark Pro", "value": "one-dark-pro" },
+            { "label": "Dracula", "value": "dracula" },
+            { "label": "Nord", "value": "nord" }
+          ],
+          "description": "代码块的语法高亮主题"
         }
       ]
     }

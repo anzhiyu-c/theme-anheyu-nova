@@ -297,6 +297,21 @@ export async function getTagBySlug(slug: string): Promise<Tag | null> {
   });
 }
 
+// ========== 评论 API ==========
+
+/**
+ * 获取评论总数
+ * 缓存 5 分钟
+ */
+export async function getCommentCount(): Promise<number> {
+  const result = await serverFetch<{ total: number }>("/public/comments/latest", {
+    revalidate: 300,
+    tags: ["comments"],
+    params: { page: 1, pageSize: 1 }, // 只获取总数，不需要实际数据
+  });
+  return result?.total || 0;
+}
+
 // ========== 友链 API ==========
 
 /**
@@ -321,4 +336,188 @@ export async function searchArticles(query: string, page = 1, size = 10): Promis
     revalidate: false, // 搜索结果不缓存
     params: { q: query, page, size },
   });
+}
+
+// ========== 主题配置 API ==========
+
+import type { NovaThemeConfig, AboutThemeConfig, AboutSkillGroup, AboutCareerItem } from "./types";
+
+/**
+ * 获取主题配置
+ * ISR: 5 分钟重新验证
+ */
+export async function getThemeConfig(): Promise<NovaThemeConfig | null> {
+  return serverFetch<NovaThemeConfig>("/public/theme/config", {
+    revalidate: 300,
+    tags: ["theme-config"],
+  });
+}
+
+/**
+ * 解析关于页面主题配置
+ * 将原始配置转换为结构化数据
+ */
+export function parseAboutThemeConfig(config: NovaThemeConfig | null): AboutThemeConfig {
+  // 默认技能组数据
+  const defaultSkillGroups: AboutSkillGroup[] = [
+    {
+      category: "前端开发",
+      icon: "Code2",
+      color: "from-blue-500 to-cyan-500",
+      items: [
+        { name: "React / Next.js", level: 95 },
+        { name: "Vue / Nuxt", level: 90 },
+        { name: "TypeScript", level: 92 },
+        { name: "Tailwind CSS", level: 95 },
+      ],
+    },
+    {
+      category: "后端开发",
+      icon: "Terminal",
+      color: "from-emerald-500 to-teal-500",
+      items: [
+        { name: "Go / Gin", level: 88 },
+        { name: "Node.js", level: 85 },
+        { name: "Python", level: 80 },
+        { name: "Rust", level: 70 },
+      ],
+    },
+    {
+      category: "数据库 & 缓存",
+      icon: "Database",
+      color: "from-orange-500 to-amber-500",
+      items: [
+        { name: "PostgreSQL", level: 90 },
+        { name: "MySQL", level: 88 },
+        { name: "Redis", level: 85 },
+        { name: "MongoDB", level: 75 },
+      ],
+    },
+    {
+      category: "云服务 & DevOps",
+      icon: "Cloud",
+      color: "from-purple-500 to-pink-500",
+      items: [
+        { name: "Docker", level: 90 },
+        { name: "Kubernetes", level: 80 },
+        { name: "AWS / 阿里云", level: 85 },
+        { name: "CI/CD", level: 88 },
+      ],
+    },
+  ];
+
+  // 默认职业经历数据
+  const defaultCareers: AboutCareerItem[] = [
+    {
+      year: "2024",
+      title: "全栈架构师",
+      company: "独立开发者",
+      description: "专注于开源项目和技术分享，打造高质量的博客系统和开发工具。",
+      icon: "Rocket",
+      color: "bg-gradient-to-r from-primary to-primary-400",
+    },
+    {
+      year: "2022",
+      title: "高级前端工程师",
+      company: "某科技公司",
+      description: "负责公司核心产品的前端架构设计与性能优化，带领团队完成多个重要项目。",
+      icon: "Layers",
+      color: "bg-gradient-to-r from-blue-500 to-cyan-500",
+    },
+    {
+      year: "2020",
+      title: "前端开发工程师",
+      company: "某互联网公司",
+      description: "参与多个大型项目开发，从0到1构建企业级中后台系统。",
+      icon: "GitBranch",
+      color: "bg-gradient-to-r from-emerald-500 to-teal-500",
+    },
+    {
+      year: "2018",
+      title: "初入编程世界",
+      company: "大学时期",
+      description: "开始学习编程，从第一行代码到第一个完整项目，开启了技术探索之旅。",
+      icon: "BookOpen",
+      color: "bg-gradient-to-r from-purple-500 to-pink-500",
+    },
+  ];
+
+  // 默认技术标签
+  const defaultTechTags = [
+    "React",
+    "Vue",
+    "Next.js",
+    "Nuxt",
+    "TypeScript",
+    "Go",
+    "Node.js",
+    "PostgreSQL",
+    "Redis",
+    "Docker",
+    "Kubernetes",
+    "Tailwind CSS",
+    "GraphQL",
+    "REST API",
+    "微服务",
+    "CI/CD",
+    "云原生",
+    "性能优化",
+  ];
+
+  if (!config) {
+    return {
+      showSkills: true,
+      showCareers: true,
+      showTechTags: true,
+      skillsTitle: "技术栈",
+      skillsTips: "多年的开发经验让我掌握了丰富的技术栈，能够应对各种复杂的项目需求",
+      careersTitle: "我的经历",
+      careersTips: "每一步都是成长，每一次挑战都是机遇",
+      skillGroups: defaultSkillGroups,
+      careers: defaultCareers,
+      techTags: defaultTechTags,
+    };
+  }
+
+  // 解析技能组 JSON
+  let skillGroups = defaultSkillGroups;
+  if (config["about.skillGroups"]) {
+    try {
+      skillGroups = JSON.parse(config["about.skillGroups"]);
+    } catch {
+      console.warn("Failed to parse about.skillGroups, using default");
+    }
+  }
+
+  // 解析职业经历 JSON
+  let careers = defaultCareers;
+  if (config["about.careers"]) {
+    try {
+      careers = JSON.parse(config["about.careers"]);
+    } catch {
+      console.warn("Failed to parse about.careers, using default");
+    }
+  }
+
+  // 解析技术标签
+  let techTags = defaultTechTags;
+  if (config["about.techTags"]) {
+    techTags = config["about.techTags"]
+      .split(",")
+      .map(tag => tag.trim())
+      .filter(Boolean);
+  }
+
+  return {
+    showSkills: config["about.showSkills"] !== false,
+    showCareers: config["about.showCareers"] !== false,
+    showTechTags: config["about.showTechTags"] !== false,
+    skillsTitle: config["about.skillsTitle"] || "技术栈",
+    skillsTips: config["about.skillsTips"] || "多年的开发经验让我掌握了丰富的技术栈，能够应对各种复杂的项目需求",
+    careersTitle: config["about.careersTitle"] || "我的经历",
+    careersTips: config["about.careersTips"] || "每一步都是成长，每一次挑战都是机遇",
+    skillGroups,
+    careers,
+    techTags,
+  };
 }

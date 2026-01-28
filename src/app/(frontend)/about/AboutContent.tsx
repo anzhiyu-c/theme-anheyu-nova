@@ -96,6 +96,8 @@ function isIconFontClass(str: string): boolean {
 }
 
 // ========== 类型定义 ==========
+import type { AboutPageConfig, AboutSkillGroup, CreativityConfig, AboutThemeConfig } from "@/lib/api/types";
+
 interface AuthorInfo {
   name: string;
   avatar: string;
@@ -105,6 +107,7 @@ interface AuthorInfo {
   skills: string[];
   social: Record<string, { icon: string; link: string }>;
   siteUrl: string;
+  email: string;
 }
 
 interface Stats {
@@ -119,13 +122,17 @@ interface Stats {
 interface AboutContentProps {
   authorInfo: AuthorInfo;
   stats: Stats;
+  aboutConfig?: AboutPageConfig;
+  creativityConfig?: CreativityConfig;
+  themeConfig?: AboutThemeConfig;
 }
 
-// ========== 技能数据 ==========
-const skillGroups = [
+// ========== 默认技能数据 ==========
+// 当后端未配置 about.page.skill_groups 时使用
+const defaultSkillGroups: AboutSkillGroup[] = [
   {
     category: "前端开发",
-    icon: Code2,
+    icon: "Code2",
     color: "from-blue-500 to-cyan-500",
     items: [
       { name: "React / Next.js", level: 95 },
@@ -136,7 +143,7 @@ const skillGroups = [
   },
   {
     category: "后端开发",
-    icon: Terminal,
+    icon: "Terminal",
     color: "from-emerald-500 to-teal-500",
     items: [
       { name: "Go / Gin", level: 88 },
@@ -147,7 +154,7 @@ const skillGroups = [
   },
   {
     category: "数据库",
-    icon: Database,
+    icon: "Database",
     color: "from-purple-500 to-pink-500",
     items: [
       { name: "PostgreSQL", level: 90 },
@@ -158,7 +165,7 @@ const skillGroups = [
   },
   {
     category: "DevOps",
-    icon: Cloud,
+    icon: "Cloud",
     color: "from-orange-500 to-red-500",
     items: [
       { name: "Docker", level: 92 },
@@ -169,14 +176,30 @@ const skillGroups = [
   },
 ];
 
-// ========== 时间线数据 ==========
-const timeline = [
+// 图标名称到组件的映射
+const iconMap: Record<string, LucideIcon> = {
+  Code2,
+  Terminal,
+  Database,
+  Cloud,
+  Rocket,
+  Layers,
+  GitBranch,
+  Globe,
+  Heart,
+  BookOpen,
+  Sparkles,
+};
+
+// ========== 默认时间线数据 ==========
+// 当后端未配置 about.page.careers 时使用
+const defaultTimeline = [
   {
     year: "2024",
     title: "全栈架构师",
     company: "独立开发者",
     description: "专注于开源项目和技术分享，打造高质量的博客系统和开发工具。",
-    icon: Rocket,
+    icon: "Rocket",
     color: "bg-gradient-to-r from-primary to-primary-400",
   },
   {
@@ -184,7 +207,7 @@ const timeline = [
     title: "高级全栈工程师",
     company: "科技公司",
     description: "负责核心业务系统架构设计和开发，带领团队完成多个重点项目。",
-    icon: Layers,
+    icon: "Layers",
     color: "bg-gradient-to-r from-blue-500 to-cyan-500",
   },
   {
@@ -192,7 +215,7 @@ const timeline = [
     title: "全栈开发工程师",
     company: "互联网公司",
     description: "参与多个 Web 应用的开发，积累了丰富的前后端开发经验。",
-    icon: GitBranch,
+    icon: "GitBranch",
     color: "bg-gradient-to-r from-purple-500 to-pink-500",
   },
   {
@@ -200,7 +223,7 @@ const timeline = [
     title: "前端开发工程师",
     company: "创业公司",
     description: "从零开始学习前端开发，完成了第一个商业项目的交付。",
-    icon: Code2,
+    icon: "Code2",
     color: "bg-gradient-to-r from-emerald-500 to-teal-500",
   },
 ];
@@ -354,7 +377,13 @@ function FloatingShapes() {
 }
 
 // ========== 主组件 ==========
-export default function AboutContent({ authorInfo, stats }: AboutContentProps) {
+export default function AboutContent({
+  authorInfo,
+  stats,
+  aboutConfig,
+  creativityConfig,
+  themeConfig,
+}: AboutContentProps) {
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -389,11 +418,33 @@ export default function AboutContent({ authorInfo, stats }: AboutContentProps) {
     { label: "评论", value: stats.totalComments, icon: MessageSquare },
   ];
 
-  // 技术标签（优先使用配置中的 skills，否则使用默认）
+  // ========== 数据优先级：主题配置 > 系统配置 > 默认值 ==========
+
+  // 技能组（优先使用主题配置，其次系统配置，最后使用默认）
+  const skillGroups = themeConfig?.skillGroups || aboutConfig?.skillGroups || defaultSkillGroups;
+
+  // 时间线/经历（优先使用主题配置，其次系统配置，最后使用默认）
+  const timeline =
+    themeConfig?.careers && themeConfig.careers.length > 0
+      ? themeConfig.careers
+      : aboutConfig?.careers?.list && aboutConfig.careers.list.length > 0
+      ? aboutConfig.careers.list.map(item => ({
+          year: item.year || "",
+          title: item.title || "",
+          company: item.company || "",
+          description: item.desc || "",
+          icon: "Rocket",
+          color: item.color || `bg-gradient-to-r from-primary to-primary-400`,
+        }))
+      : defaultTimeline;
+
+  // 技术标签（优先使用主题配置，其次使用 authorInfo.skills，再次使用 creativity 配置，最后使用默认）
   const techTags =
-    authorInfo.skills.length > 0
+    themeConfig?.techTags && themeConfig.techTags.length > 0
+      ? themeConfig.techTags
+      : authorInfo.skills.length > 0
       ? authorInfo.skills
-      : [
+      : creativityConfig?.creativity_list?.map(item => item.name) || [
           "React",
           "Vue",
           "Next.js",
@@ -413,6 +464,21 @@ export default function AboutContent({ authorInfo, stats }: AboutContentProps) {
           "云原生",
           "性能优化",
         ];
+
+  // 板块标题和描述（优先使用主题配置）
+  const skillsTitle = themeConfig?.skillsTitle || aboutConfig?.skillsTips?.title || "技术栈";
+  const skillsTips =
+    themeConfig?.skillsTips ||
+    aboutConfig?.skillsTips?.tips ||
+    "多年的开发经验让我掌握了丰富的技术栈，能够应对各种复杂的项目需求";
+  const careersTitle = themeConfig?.careersTitle || aboutConfig?.careers?.title || "我的经历";
+  const careersTips = themeConfig?.careersTips || aboutConfig?.careers?.tips || "每一步都是成长，每一次挑战都是机遇";
+
+  // 板块开关配置（优先使用主题配置，其次系统配置，默认全部启用）
+  const enableConfig = aboutConfig?.enable || {};
+  const isSkillsEnabled = themeConfig?.showSkills ?? enableConfig.skills !== false;
+  const isCareersEnabled = themeConfig?.showCareers ?? enableConfig.careers !== false;
+  const isShowTechTags = themeConfig?.showTechTags ?? true;
 
   return (
     <div className="relative min-h-screen">
@@ -452,7 +518,7 @@ export default function AboutContent({ authorInfo, stats }: AboutContentProps) {
                     </div>
                   )}
                 </div>
-                {/* 状态图片或装饰 */}
+                {/* 状态图片或在线状态指示器 */}
                 {authorInfo.statusImg ? (
                   <motion.div
                     className="absolute -bottom-2 -right-2 w-12 h-12"
@@ -468,18 +534,38 @@ export default function AboutContent({ authorInfo, stats }: AboutContentProps) {
                     />
                   </motion.div>
                 ) : (
-                  <>
+                  /* 绿色在线状态指示器 */
+                  <div className="absolute -bottom-1 -right-1">
+                    {/* 脉冲动画背景 */}
                     <motion.div
-                      className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full"
-                      animate={{ scale: [1, 1.2, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
+                      className="absolute inset-0 w-5 h-5 bg-emerald-400/60 rounded-full"
+                      animate={{
+                        scale: [1, 1.8, 1.8],
+                        opacity: [0.7, 0, 0],
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeOut",
+                      }}
                     />
+                    {/* 第二层脉冲 */}
                     <motion.div
-                      className="absolute -bottom-1 -left-1 w-4 h-4 bg-gradient-to-r from-blue-400 to-cyan-500 rounded-full"
-                      animate={{ scale: [1, 1.3, 1] }}
-                      transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
+                      className="absolute inset-0 w-5 h-5 bg-emerald-400/40 rounded-full"
+                      animate={{
+                        scale: [1, 2.2, 2.2],
+                        opacity: [0.5, 0, 0],
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeOut",
+                        delay: 0.3,
+                      }}
                     />
-                  </>
+                    {/* 实心圆点 */}
+                    <div className="relative w-5 h-5 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full border-[3px] border-white dark:border-zinc-900 shadow-lg shadow-emerald-500/30" />
+                  </div>
                 )}
               </div>
             </Card3D>
@@ -600,108 +686,132 @@ export default function AboutContent({ authorInfo, stats }: AboutContentProps) {
       </section>
 
       {/* 技能展示 */}
-      <section className="py-20 px-4">
-        <div className="max-w-6xl mx-auto">
-          <ScrollReveal>
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold gradient-text mb-4">技术栈</h2>
-              <p className="text-zinc-500 dark:text-zinc-400 max-w-xl mx-auto">
-                多年的开发经验让我掌握了丰富的技术栈，能够应对各种复杂的项目需求
-              </p>
-            </div>
-          </ScrollReveal>
+      {isSkillsEnabled && (
+        <section className="py-20 px-4">
+          <div className="max-w-6xl mx-auto">
+            <ScrollReveal>
+              <div className="text-center mb-16">
+                <h2 className="text-3xl md:text-4xl font-bold gradient-text mb-4">{skillsTitle}</h2>
+                <p className="text-zinc-500 dark:text-zinc-400 max-w-xl mx-auto">{skillsTips}</p>
+              </div>
+            </ScrollReveal>
 
-          <div className="grid md:grid-cols-2 gap-8">
-            {skillGroups.map((skillGroup, groupIndex) => (
-              <ScrollReveal key={skillGroup.category} delay={groupIndex * 0.1}>
-                <div className="glass-card-enhanced rounded-3xl p-6 md:p-8 hover-lift">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div
-                      className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${skillGroup.color} flex items-center justify-center text-white shadow-lg`}
-                    >
-                      <skillGroup.icon className="w-6 h-6" />
+            <div className="grid md:grid-cols-2 gap-8">
+              {skillGroups.map((skillGroup, groupIndex) => {
+                const IconComponent = iconMap[skillGroup.icon || "Code2"] || Code2;
+                return (
+                  <ScrollReveal key={skillGroup.category} delay={groupIndex * 0.1}>
+                    <div className="glass-card-enhanced rounded-3xl p-6 md:p-8 hover-lift">
+                      <div className="flex items-center gap-4 mb-6">
+                        <div
+                          className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${
+                            skillGroup.color || "from-blue-500 to-cyan-500"
+                          } flex items-center justify-center text-white shadow-lg`}
+                        >
+                          <IconComponent className="w-6 h-6" />
+                        </div>
+                        <h3 className="text-xl font-semibold">{skillGroup.category}</h3>
+                      </div>
+                      <div className="space-y-4">
+                        {skillGroup.items.map((skill, skillIndex) => (
+                          <SkillBar
+                            key={skill.name}
+                            name={skill.name}
+                            level={skill.level}
+                            delay={groupIndex * 0.2 + skillIndex * 0.1}
+                          />
+                        ))}
+                      </div>
                     </div>
-                    <h3 className="text-xl font-semibold">{skillGroup.category}</h3>
-                  </div>
-                  <div className="space-y-4">
-                    {skillGroup.items.map((skill, skillIndex) => (
-                      <SkillBar
-                        key={skill.name}
-                        name={skill.name}
-                        level={skill.level}
-                        delay={groupIndex * 0.2 + skillIndex * 0.1}
-                      />
-                    ))}
-                  </div>
+                  </ScrollReveal>
+                );
+              })}
+            </div>
+
+            {/* 技术标签云 */}
+            {isShowTechTags && (
+              <ScrollReveal delay={0.4}>
+                <div className="mt-12 flex flex-wrap justify-center gap-3">
+                  {techTags.map((tag, index) => (
+                    <motion.span
+                      key={tag}
+                      className="px-4 py-2 rounded-full bg-zinc-100 dark:bg-zinc-800 text-sm text-zinc-600 dark:text-zinc-400 hover:bg-primary hover:text-white dark:hover:bg-primary dark:hover:text-white transition-all duration-300 cursor-default"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: index * 0.03 }}
+                      whileHover={{ scale: 1.1, y: -2 }}
+                    >
+                      {tag}
+                    </motion.span>
+                  ))}
                 </div>
               </ScrollReveal>
-            ))}
+            )}
           </div>
-
-          {/* 技术标签云 */}
-          <ScrollReveal delay={0.4}>
-            <div className="mt-12 flex flex-wrap justify-center gap-3">
-              {techTags.map((tag, index) => (
-                <motion.span
-                  key={tag}
-                  className="px-4 py-2 rounded-full bg-zinc-100 dark:bg-zinc-800 text-sm text-zinc-600 dark:text-zinc-400 hover:bg-primary hover:text-white dark:hover:bg-primary dark:hover:text-white transition-all duration-300 cursor-default"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.03 }}
-                  whileHover={{ scale: 1.1, y: -2 }}
-                >
-                  {tag}
-                </motion.span>
-              ))}
-            </div>
-          </ScrollReveal>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* 时间线 */}
-      <section className="py-20 px-4 bg-gradient-to-b from-transparent via-zinc-50/30 to-transparent dark:via-zinc-900/30">
-        <div className="max-w-4xl mx-auto">
-          <ScrollReveal>
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold gradient-text mb-4">我的经历</h2>
-              <p className="text-zinc-500 dark:text-zinc-400 max-w-xl mx-auto">每一步都是成长，每一次挑战都是机遇</p>
-            </div>
-          </ScrollReveal>
+      {isCareersEnabled && timeline.length > 0 && (
+        <section className="py-20 px-4 bg-gradient-to-b from-transparent via-zinc-50/30 to-transparent dark:via-zinc-900/30">
+          <div className="max-w-4xl mx-auto">
+            <ScrollReveal>
+              <div className="text-center mb-16">
+                <h2 className="text-3xl md:text-4xl font-bold gradient-text mb-4">{careersTitle}</h2>
+                <p className="text-zinc-500 dark:text-zinc-400 max-w-xl mx-auto">{careersTips}</p>
+              </div>
+            </ScrollReveal>
 
-          <div className="relative">
-            <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary via-primary-400 to-purple-500 transform md:-translate-x-1/2" />
+            <div className="relative">
+              <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary via-primary-400 to-purple-500 transform md:-translate-x-1/2" />
 
-            {timeline.map((item, index) => (
-              <ScrollReveal key={item.year} delay={index * 0.15} direction={index % 2 === 0 ? "left" : "right"}>
-                <div
-                  className={`relative flex items-start gap-8 mb-12 ${
-                    index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
-                  }`}
-                >
-                  <div className="absolute left-8 md:left-1/2 w-4 h-4 rounded-full bg-primary border-4 border-white dark:border-zinc-900 transform -translate-x-1/2 z-10" />
+              {timeline.map((item, index) => {
+                const TimelineIcon = iconMap[item.icon] || Rocket;
+                return (
+                  <ScrollReveal
+                    key={`${item.year}-${index}`}
+                    delay={index * 0.15}
+                    direction={index % 2 === 0 ? "left" : "right"}
+                  >
+                    <div
+                      className={`relative flex items-start gap-8 mb-12 ${
+                        index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
+                      }`}
+                    >
+                      <div className="absolute left-8 md:left-1/2 w-4 h-4 rounded-full bg-primary border-4 border-white dark:border-zinc-900 transform -translate-x-1/2 z-10" />
 
-                  <div className={`ml-16 md:ml-0 md:w-1/2 ${index % 2 === 0 ? "md:pr-12 md:text-right" : "md:pl-12"}`}>
-                    <div className="glass-card-enhanced rounded-2xl p-6 hover-lift">
-                      <div className={`flex items-center gap-3 mb-3 ${index % 2 === 0 ? "md:justify-end" : ""}`}>
-                        <div
-                          className={`w-10 h-10 rounded-xl ${item.color} flex items-center justify-center text-white shadow-lg`}
-                        >
-                          <item.icon className="w-5 h-5" />
+                      <div
+                        className={`ml-16 md:ml-0 md:w-1/2 ${index % 2 === 0 ? "md:pr-12 md:text-right" : "md:pl-12"}`}
+                      >
+                        <div className="glass-card-enhanced rounded-2xl p-6 hover-lift">
+                          <div className={`flex items-center gap-3 mb-3 ${index % 2 === 0 ? "md:justify-end" : ""}`}>
+                            <div
+                              className={`w-10 h-10 rounded-xl ${
+                                item.color || "bg-gradient-to-r from-primary to-primary-400"
+                              } flex items-center justify-center text-white shadow-lg`}
+                            >
+                              <TimelineIcon className="w-5 h-5" />
+                            </div>
+                            <span className="text-sm font-medium text-primary">{item.year}</span>
+                          </div>
+                          <h3 className="text-xl font-semibold mb-1">{item.title}</h3>
+                          {item.company && <p className="text-sm text-primary/80 mb-3">{item.company}</p>}
+                          {item.description && (
+                            <p className="text-zinc-500 dark:text-zinc-400 text-sm leading-relaxed">
+                              {item.description}
+                            </p>
+                          )}
                         </div>
-                        <span className="text-sm font-medium text-primary">{item.year}</span>
                       </div>
-                      <h3 className="text-xl font-semibold mb-1">{item.title}</h3>
-                      <p className="text-sm text-primary/80 mb-3">{item.company}</p>
-                      <p className="text-zinc-500 dark:text-zinc-400 text-sm leading-relaxed">{item.description}</p>
                     </div>
-                  </div>
-                </div>
-              </ScrollReveal>
-            ))}
+                  </ScrollReveal>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* 关于这个博客 */}
       <section className="py-20 px-4">
@@ -754,29 +864,36 @@ export default function AboutContent({ authorInfo, stats }: AboutContentProps) {
             </div>
           </ScrollReveal>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 gap-6">
             {[
-              {
-                icon: Mail,
-                title: "邮箱",
-                value: "anzhiyu@anheyu.com",
-                href: "mailto:anzhiyu@anheyu.com",
-                color: "from-blue-500 to-cyan-500",
-              },
-              {
-                icon: MessageCircle,
-                title: "微信",
-                value: "扫码添加",
-                href: "#",
-                color: "from-emerald-500 to-teal-500",
-              },
-              {
-                icon: Globe,
-                title: "网站",
-                value: authorInfo.siteUrl ? new URL(authorInfo.siteUrl).hostname : "blog.anheyu.com",
-                href: authorInfo.siteUrl || "https://blog.anheyu.com",
-                color: "from-purple-500 to-pink-500",
-              },
+              ...(authorInfo.email
+                ? [
+                    {
+                      icon: Mail,
+                      title: "邮箱",
+                      value: authorInfo.email,
+                      href: `mailto:${authorInfo.email}`,
+                      color: "from-blue-500 to-cyan-500",
+                    },
+                  ]
+                : []),
+              ...(authorInfo.siteUrl
+                ? [
+                    {
+                      icon: Globe,
+                      title: "网站",
+                      value: (() => {
+                        try {
+                          return new URL(authorInfo.siteUrl).hostname;
+                        } catch {
+                          return authorInfo.siteUrl;
+                        }
+                      })(),
+                      href: authorInfo.siteUrl,
+                      color: "from-purple-500 to-pink-500",
+                    },
+                  ]
+                : []),
             ].map((contact, index) => (
               <ScrollReveal key={contact.title} delay={index * 0.1}>
                 <motion.a

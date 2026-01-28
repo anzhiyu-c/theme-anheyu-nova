@@ -146,15 +146,42 @@ export interface ArchiveSummaryResponse {
   total: number;
 }
 
-// 文章统计
+// 分类统计项
+export interface CategoryStatItem {
+  name: string;
+  count: number;
+}
+
+// 标签统计项
+export interface TagStatItem {
+  name: string;
+  count: number;
+}
+
+// 热门文章项
+export interface TopViewedPostItem {
+  id: string;
+  title: string;
+  views: number;
+  cover_url?: string;
+}
+
+// 发布趋势项
+export interface PublishTrendItem {
+  month: string;
+  count: number;
+}
+
+// 文章统计（匹配后端 model.ArticleStatistics）
 export interface ArticleStatistics {
-  total_articles: number;
-  total_words: number;
-  total_views: number;
-  total_likes: number;
-  total_comments: number;
-  category_count: number;
-  tag_count: number;
+  total_posts: number; // 文章总数
+  total_words: number; // 总字数
+  avg_words: number; // 平均字数
+  total_views: number; // 总浏览量
+  category_stats: CategoryStatItem[]; // 分类统计
+  tag_stats: TagStatItem[]; // 标签统计
+  top_viewed_posts: TopViewedPostItem[]; // 热门文章
+  publish_trend: PublishTrendItem[]; // 发布趋势
 }
 
 // ========== 分类相关类型 ==========
@@ -409,8 +436,257 @@ export interface SiteConfig {
   FRIEND_LINK_PLACEHOLDER_LOGO?: string;
   FRIEND_LINK_PLACEHOLDER_DESCRIPTION?: string;
 
+  // 关于页面配置
+  about?: AboutPageConfig;
+
+  // 首页技能/创造力模块配置
+  creativity?: CreativityConfig;
+
   // 其他配置（允许扩展）
   [key: string]: unknown;
+}
+
+// ========== 关于页面配置类型 ==========
+
+/**
+ * 关于页面完整配置
+ * 对应后端 about.page.* 配置项
+ */
+export interface AboutPageConfig {
+  // 基础信息
+  name?: string; // about.page.name
+  description?: string; // about.page.description
+  avatarImg?: string; // about.page.avatar_img
+  subtitle?: string; // about.page.subtitle
+  avatarSkillsLeft?: string[]; // about.page.avatar_skills_left
+  avatarSkillsRight?: string[]; // about.page.avatar_skills_right
+
+  // 关于网站提示
+  aboutSiteTips?: AboutSiteTips; // about.page.about_site_tips
+
+  // 统计背景
+  statisticsBackground?: string; // about.page.statistics_background
+
+  // 地图信息
+  map?: AboutMapConfig; // about.page.map
+
+  // 个人信息
+  selfInfo?: AboutSelfInfo; // about.page.self_info
+
+  // 性格信息
+  personalities?: AboutPersonalities; // about.page.personalities
+
+  // 格言
+  maxim?: AboutMaxim; // about.page.maxim
+
+  // 特长/增益
+  buff?: AboutBuff; // about.page.buff
+
+  // 游戏信息
+  game?: AboutGame; // about.page.game
+
+  // 番剧/漫画
+  comic?: AboutComic; // about.page.comic
+
+  // 技术偏好
+  like?: AboutLike; // about.page.like
+
+  // 音乐偏好
+  music?: AboutMusic; // about.page.music
+
+  // 职业经历
+  careers?: AboutCareers; // about.page.careers
+
+  // 技能提示
+  skillsTips?: AboutSkillsTips; // about.page.skills_tips
+
+  // 技能组配置（进度条形式）
+  skillGroups?: AboutSkillGroup[]; // about.page.skill_groups
+
+  // 自定义内容
+  customCode?: string; // about.page.custom_code (Markdown)
+  customCodeHtml?: string; // about.page.custom_code_html (HTML)
+
+  // 板块开关配置
+  enable?: AboutPageEnableConfig;
+}
+
+/**
+ * 关于网站提示配置
+ */
+export interface AboutSiteTips {
+  tips?: string;
+  title1?: string;
+  title2?: string;
+  word?: string[];
+}
+
+/**
+ * 地图配置
+ */
+export interface AboutMapConfig {
+  title?: string;
+  strengthenTitle?: string;
+  background?: string;
+  backgroundDark?: string;
+}
+
+/**
+ * 个人信息配置
+ */
+export interface AboutSelfInfo {
+  tips1?: string;
+  contentYear?: string;
+  tips2?: string;
+  content2?: string;
+  tips3?: string;
+  content3?: string;
+}
+
+/**
+ * 性格信息配置
+ */
+export interface AboutPersonalities {
+  tips?: string;
+  authorName?: string;
+  personalityType?: string;
+  personalityTypeColor?: string;
+  personalityImg?: string;
+  nameUrl?: string;
+  photoUrl?: string;
+}
+
+/**
+ * 格言配置
+ */
+export interface AboutMaxim {
+  tips?: string;
+  top?: string;
+  bottom?: string;
+}
+
+/**
+ * 特长/增益配置
+ */
+export interface AboutBuff {
+  tips?: string;
+  top?: string;
+  bottom?: string;
+}
+
+/**
+ * 游戏信息配置
+ */
+export interface AboutGame {
+  tips?: string;
+  title?: string;
+  uid?: string;
+  background?: string;
+}
+
+/**
+ * 番剧/漫画配置
+ */
+export interface AboutComic {
+  tips?: string;
+  title?: string;
+  list?: Array<{
+    name: string;
+    cover: string;
+    href?: string;
+  }>;
+}
+
+/**
+ * 技术偏好配置
+ */
+export interface AboutLike {
+  tips?: string;
+  title?: string;
+  bottom?: string;
+  background?: string;
+}
+
+/**
+ * 音乐偏好配置
+ */
+export interface AboutMusic {
+  tips?: string;
+  title?: string;
+  link?: string;
+  background?: string;
+}
+
+/**
+ * 职业经历配置
+ */
+export interface AboutCareers {
+  tips?: string;
+  title?: string;
+  img?: string;
+  list?: Array<{
+    year?: string;
+    title?: string;
+    company?: string;
+    desc?: string;
+    color?: string;
+  }>;
+}
+
+/**
+ * 技能提示配置
+ */
+export interface AboutSkillsTips {
+  tips?: string;
+  title?: string;
+}
+
+/**
+ * 技能组配置（进度条形式）
+ */
+export interface AboutSkillGroup {
+  category: string;
+  icon?: string; // 图标名称或类名
+  color?: string; // 渐变色，如 "from-blue-500 to-cyan-500"
+  items: Array<{
+    name: string;
+    level: number; // 0-100 百分比
+  }>;
+}
+
+/**
+ * 关于页面板块开关配置
+ */
+export interface AboutPageEnableConfig {
+  authorBox?: boolean; // 作者头像框板块
+  pageContent?: boolean; // 基础介绍内容板块
+  skills?: boolean; // 技能卡片板块
+  careers?: boolean; // 职业经历卡片板块
+  statistic?: boolean; // 访问统计卡片板块
+  mapAndInfo?: boolean; // 地图和个人信息卡片板块
+  personality?: boolean; // 性格卡片板块
+  photo?: boolean; // 照片卡片板块
+  maxim?: boolean; // 格言卡片板块
+  buff?: boolean; // 特长卡片板块
+  game?: boolean; // 游戏卡片板块
+  comic?: boolean; // 漫画/番剧卡片板块
+  likeTech?: boolean; // 技术偏好卡片板块
+  music?: boolean; // 音乐卡片板块
+  customCode?: boolean; // 自定义内容块
+  comment?: boolean; // 评论板块
+}
+
+/**
+ * 首页技能/创造力模块配置
+ */
+export interface CreativityConfig {
+  title?: string;
+  subtitle?: string;
+  creativity_list?: Array<{
+    name: string;
+    color?: string;
+    icon?: string;
+  }>;
 }
 
 export interface FriendLink {
@@ -460,4 +736,64 @@ export interface SearchParams {
   q: string;
   page?: number;
   size?: number;
+}
+
+// ========== 主题配置类型 ==========
+
+/**
+ * Nova 主题配置
+ * 对应 theme.json 中的 settings 字段定义
+ * 通过 /api/public/theme/config 获取
+ */
+export interface NovaThemeConfig {
+  // 关于页面配置
+  "about.showSkills"?: boolean;
+  "about.showCareers"?: boolean;
+  "about.showTechTags"?: boolean;
+  "about.skillsTitle"?: string;
+  "about.skillsTips"?: string;
+  "about.careersTitle"?: string;
+  "about.careersTips"?: string;
+  "about.skillGroups"?: string; // JSON 字符串
+  "about.careers"?: string; // JSON 字符串
+  "about.techTags"?: string; // 逗号分隔
+
+  // 首页配置
+  "homepage.heroStyle"?: "default" | "minimal" | "fullscreen";
+  "homepage.showRecentPosts"?: boolean;
+  "homepage.postsCount"?: number;
+
+  // 文章页面配置
+  "article.showToc"?: boolean;
+  "article.showAuthor"?: boolean;
+  "article.showRelated"?: boolean;
+  "article.codeTheme"?: string;
+}
+
+/**
+ * 解析后的关于页面主题配置
+ */
+export interface AboutThemeConfig {
+  showSkills: boolean;
+  showCareers: boolean;
+  showTechTags: boolean;
+  skillsTitle: string;
+  skillsTips: string;
+  careersTitle: string;
+  careersTips: string;
+  skillGroups: AboutSkillGroup[];
+  careers: AboutCareerItem[];
+  techTags: string[];
+}
+
+/**
+ * 职业经历项（主题配置版）
+ */
+export interface AboutCareerItem {
+  year: string;
+  title: string;
+  company: string;
+  description: string;
+  icon: string;
+  color: string;
 }

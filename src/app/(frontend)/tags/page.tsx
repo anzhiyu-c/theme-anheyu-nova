@@ -17,9 +17,9 @@ export default function TagsPage() {
 
   // Calculate font size based on article count
   const getTagSize = (count: number): "sm" | "md" | "lg" => {
-    if (count >= 10) return "lg";
-    if (count >= 5) return "md";
-    return "sm";
+    if (count >= 5) return "lg";
+    if (count >= 2) return "md";
+    return "md"; // 最小也用 md
   };
 
   return (
@@ -40,20 +40,20 @@ export default function TagsPage() {
           <p className="text-zinc-500">暂无标签</p>
         </div>
       ) : (
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-4 justify-center">
           {tags.map(tag => (
             <Link key={tag.id} href={`/posts?tag=${tag.id}`}>
               <Chip
                 size={getTagSize(tag.count)}
                 variant="flat"
-                className="cursor-pointer hover:bg-primary/20 transition-colors"
+                className="cursor-pointer hover:bg-primary/20 transition-all hover:scale-105 px-4 py-2 text-base"
                 style={{
                   backgroundColor: tag.color ? `${tag.color}20` : undefined,
                   color: tag.color || undefined,
                 }}
               >
                 {tag.name}
-                <span className="ml-1 text-xs opacity-60">({tag.count})</span>
+                <span className="ml-1.5 opacity-60">({tag.count})</span>
               </Chip>
             </Link>
           ))}

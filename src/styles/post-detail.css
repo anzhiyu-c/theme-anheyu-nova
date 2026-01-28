@@ -63,9 +63,16 @@
   height: 100%;
   overflow: hidden;
   filter: blur(30px);
-  opacity: 0.5;
   transform: rotate(10deg) translateY(30%) scale(2);
   z-index: 1;
+  /* 默认透明，等待图片加载完成后整体淡入 */
+  opacity: 0;
+  transition: opacity 0.6s ease-out;
+}
+
+/* 图片加载完成后整个区域淡入 */
+.post-hero-cover.is-loaded {
+  opacity: 0.5;
 }
 
 .post-hero-cover-img {

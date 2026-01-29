@@ -1,23 +1,34 @@
 /**
  * API 客户端
+ *
+ * 始终使用当前站点地址作为 API 基础 URL。
+ * 部署在 blog.anheyu.com 时，前端会自动请求 blog.anheyu.com/api/*
  */
 import type { ApiResponse } from "./types";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
+import { getApiBaseUrl } from "@/store";
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | undefined>;
 }
 
 class ApiClient {
-  private baseUrl: string;
-
-  constructor(baseUrl: string) {
-    this.baseUrl = `${baseUrl}/api`;
+  /**
+   * 获取当前的 API 基础 URL
+   * 始终使用当前站点地址
+   *
+   * 例如：部署在 blog.anheyu.com → 返回 https://blog.anheyu.com/api
+   */
+  private getBaseUrl(): string {
+    const apiUrl = getApiBaseUrl();
+    return `${apiUrl}/api`;
   }
 
   private buildUrl(endpoint: string, params?: Record<string, string | number | undefined>): string {
-    const url = new URL(`${this.baseUrl}${endpoint}`, window.location.origin);
+    const baseUrl = this.getBaseUrl();
+
+    // baseUrl 现在总是完整的 URL（如 https://blog.anheyu.com/api）
+    const url = new URL(`${baseUrl}${endpoint}`);
+
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined) {
@@ -59,4 +70,4 @@ class ApiClient {
   }
 }
 
-export const apiClient = new ApiClient(API_BASE_URL);
+export const apiClient = new ApiClient();

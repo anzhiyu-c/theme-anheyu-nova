@@ -52,11 +52,20 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+/**
+ * 根布局组件
+ *
+ * 服务端获取站点配置后传递给 Providers，
+ * 用于初始化客户端站点信息（API URL 始终使用当前站点地址）。
+ */
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // 服务端获取站点配置
+  const siteConfig = await getSiteConfig();
+
   return (
     <html lang="zh-CN" suppressHydrationWarning>
       <body>
-        <Providers>{children}</Providers>
+        <Providers initialSiteConfig={siteConfig}>{children}</Providers>
       </body>
     </html>
   );

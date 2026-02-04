@@ -18,7 +18,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 THEME_DIR="$(dirname "$SCRIPT_DIR")"
 THEME_NAME="theme-anheyu-nova"
 VERSION=$(node -p "require('${THEME_DIR}/package.json').version")
-OUTPUT_FILE="${THEME_DIR}/${THEME_NAME}-${VERSION}.tar.gz"
+OUTPUT_DIR="${THEME_DIR}/dist"
+OUTPUT_FILE="${OUTPUT_DIR}/${THEME_NAME}-v${VERSION}.tar.gz"
 TEMP_DIR="${THEME_DIR}/.pack-temp"
 
 echo -e "${BLUE}📦 打包 ${THEME_NAME} v${VERSION}${NC}"
@@ -94,6 +95,7 @@ echo ""
 
 # 4. 创建 tar.gz 包
 echo -e "${BLUE}📦 步骤 4/5: 创建压缩包...${NC}"
+mkdir -p "$OUTPUT_DIR"
 cd "$TEMP_DIR"
 tar -czvf "$OUTPUT_FILE" "${THEME_NAME}"
 echo -e "${GREEN}✅ 压缩包创建完成${NC}"

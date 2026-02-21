@@ -1400,6 +1400,7 @@
   background: var(--anzhiyu-code-stress);
   border-radius: 4px;
   box-shadow: var(--anzhiyu-shadow-border);
+  font-weight: 700;
 }
 
 .post-content p {

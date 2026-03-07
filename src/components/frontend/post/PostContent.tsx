@@ -1018,50 +1018,63 @@ export function PostContent({ content, className = "" }: PostContentProps) {
 
   /**
    * 初始化懒加载图片
-   * 使用 IntersectionObserver 实现，当图片进入视口时加载
+   * 先立即加载视口内的图片，再用 IntersectionObserver 处理剩余图片
    */
   const initLazyLoad = useCallback((container: HTMLElement) => {
     const lazyImages = container.querySelectorAll<HTMLImageElement>("img[data-src]");
 
     if (lazyImages.length === 0) return;
 
+    const loadImage = (img: HTMLImageElement) => {
+      const src = img.dataset.src;
+      if (!src || img.src === src) return;
+
+      img.src = src;
+      img.removeAttribute("data-src");
+
+      img.onload = () => {
+        requestAnimationFrame(() => {
+          img.classList.add("lazy-loaded");
+        });
+      };
+
+      img.onerror = () => {
+        img.classList.add("lazy-loaded");
+      };
+    };
+
+    // 立即加载视口内及附近的图片，不依赖 IntersectionObserver
+    const viewportHeight = window.innerHeight;
+    lazyImages.forEach(img => {
+      const rect = img.getBoundingClientRect();
+      if (rect.top < viewportHeight + 200) {
+        loadImage(img);
+      }
+    });
+
+    // 对剩余未加载的图片使用 IntersectionObserver
+    const remainingImages = container.querySelectorAll<HTMLImageElement>("img[data-src]");
+    if (remainingImages.length === 0) return;
+
     const observer = new IntersectionObserver(
       entries => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
-            const img = entry.target as HTMLImageElement;
-            const src = img.dataset.src;
-
-            if (src && img.src !== src) {
-              img.src = src;
-              img.removeAttribute("data-src");
-
-              img.onload = () => {
-                requestAnimationFrame(() => {
-                  img.classList.add("lazy-loaded");
-                });
-              };
-
-              img.onerror = () => {
-                img.classList.add("lazy-loaded");
-              };
-
-              observer.unobserve(img);
-            }
+            loadImage(entry.target as HTMLImageElement);
+            observer.unobserve(entry.target);
           }
         });
       },
       {
-        threshold: 0.1,
-        rootMargin: "100px",
+        threshold: 0,
+        rootMargin: "200px",
       }
     );
 
-    lazyImages.forEach(img => {
+    remainingImages.forEach(img => {
       observer.observe(img);
     });
 
-    // 返回清理函数
     return () => observer.disconnect();
   }, []);
 

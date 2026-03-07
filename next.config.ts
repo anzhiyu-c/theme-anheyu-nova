@@ -109,31 +109,9 @@ const nextConfig: NextConfig = {
           destination: `${backendUrl}/admin-assets/:path*`,
         },
       ],
-      // afterFiles: SEO 和动态生成的文件（这些需要从后端获取）
-      afterFiles: [
-        // SEO 相关文件代理（动态生成）
-        {
-          source: "/sitemap.xml",
-          destination: `${backendUrl}/sitemap.xml`,
-        },
-        {
-          source: "/robots.txt",
-          destination: `${backendUrl}/robots.txt`,
-        },
-        // RSS Feed 代理（动态生成）
-        {
-          source: "/rss.xml",
-          destination: `${backendUrl}/rss.xml`,
-        },
-        {
-          source: "/feed.xml",
-          destination: `${backendUrl}/feed.xml`,
-        },
-        {
-          source: "/atom.xml",
-          destination: `${backendUrl}/atom.xml`,
-        },
-      ],
+      // RSS / Sitemap / robots.txt 已通过 Route Handler 处理（src/app/rss.xml/route.ts 等），
+      // 在运行时读取 API_URL 环境变量代理到后端，不再使用 rewrites
+      afterFiles: [],
       fallback: [],
     };
   },
